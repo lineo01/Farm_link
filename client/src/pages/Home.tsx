@@ -1,26 +1,96 @@
-import { PRODUCTS, MARKET_RATES } from "@/lib/mockData";
-import { MapPin, MessageCircle, ShoppingBag, TrendingUp, TrendingDown, Minus, HandCoins, ArrowRight } from "lucide-react";
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { Search, Filter, MapPin, ChevronDown, SlidersHorizontal } from "lucide-react";
+import { PRODUCTS, MARKET_RATES } from "@/lib/mockData";
 import { Link } from "wouter";
+import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { Heart, MessageCircle, ShoppingBag, TrendingUp, TrendingDown, Minus, HandCoins, ArrowRight } from "lucide-react";
 
 export default function Home() {
-  return (
-    <div className="space-y-6 bg-muted/20 min-h-full pb-8 pt-2">
-      {PRODUCTS.map((product, index) => {
-        // Mock market logic
-        const marketRate = MARKET_RATES[product.name as keyof typeof MARKET_RATES];
-        const isGoodPrice = marketRate && parseInt(product.price.split(' ')[1]) <= marketRate.max;
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeFilter, setActiveFilter] = useState("All");
+  const [showFilters, setShowFilters] = useState(false);
 
-        return (
-          <motion.div 
-            key={product.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
-            className="bg-white border-y border-border/50 sm:border sm:rounded-3xl sm:mx-4 shadow-sm overflow-hidden"
+  // Mock filtering
+  const filteredProducts = PRODUCTS.filter(product => {
+    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                          product.farmer.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesFilter = activeFilter === "All" || product.location === activeFilter;
+    return matchesSearch && matchesFilter;
+  });
+
+  return (
+    <div className="bg-muted/10 min-h-full pb-20">
+      {/* Search & Filter Header */}
+      <div className="bg-white p-4 sticky top-0 z-10 shadow-sm border-b border-border">
+        <div className="relative mb-3">
+          <Search className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
+          <input 
+            type="text"
+            placeholder="Search products, farmers..." 
+            className="w-full pl-10 pr-4 py-3 bg-muted/30 border border-border/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          <button 
+            onClick={() => setShowFilters(!showFilters)}
+            className="absolute right-3 top-2.5 p-1.5 hover:bg-muted rounded-lg transition-colors"
           >
+            <SlidersHorizontal className="h-5 w-5 text-muted-foreground" />
+          </button>
+        </div>
+
+        {/* Filter Chips */}
+        {showFilters && (
+          <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2 animate-in slide-in-from-top-2">
+             {["All", "Kavre", "Dhading", "Sindhuli", "Bhaktapur"].map(loc => (
+               <button
+                 key={loc}
+                 onClick={() => setActiveFilter(loc)}
+                 className={cn(
+                   "px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap border transition-colors",
+                   activeFilter === loc 
+                     ? "bg-primary text-white border-primary" 
+                     : "bg-white text-muted-foreground border-border hover:border-primary/50"
+                 )}
+               >
+                 {loc}
+               </button>
+             ))}
+             <button className="px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap border bg-white text-muted-foreground border-border flex items-center gap-1">
+                Qty: High to Low <ChevronDown className="w-3 h-3" />
+             </button>
+          </div>
+        )}
+        
+        {/* Tenders Banner */}
+        <Link href="/tenders">
+          <div className="mt-2 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl p-3 text-white flex items-center justify-between shadow-lg shadow-blue-200 cursor-pointer hover:scale-[1.01] transition-transform">
+             <div>
+               <p className="text-xs font-medium opacity-80">New Opportunities</p>
+               <p className="font-bold text-sm">3 Active Tenders for your crops</p>
+             </div>
+             <div className="bg-white/20 p-2 rounded-lg">
+               <ArrowRight className="w-4 h-4" />
+             </div>
+          </div>
+        </Link>
+      </div>
+
+      {/* Product List */}
+      <div className="space-y-6 pt-4">
+        {filteredProducts.map((product, index) => {
+          const marketRate = MARKET_RATES[product.name as keyof typeof MARKET_RATES];
+          const isGoodPrice = marketRate && parseInt(product.price.split(' ')[1]) <= marketRate.max;
+
+          return (
+            <motion.div 
+              key={product.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+              className="bg-white border-y border-border/50 sm:border sm:rounded-3xl sm:mx-4 shadow-sm overflow-hidden"
+            >
             {/* Marketplace Header */}
             <div className="px-4 py-3 flex items-center justify-between bg-white/50 backdrop-blur-sm">
                <div className="flex items-center gap-3">
@@ -126,16 +196,17 @@ export default function Home() {
                       <MessageCircle className="w-4 h-4" /> Message
                    </button>
                  </Link>
-                 <Link href="/chat">
+                 <Link href="/tenders">
                    <button className="w-full py-3 rounded-xl bg-primary text-white font-bold text-sm flex items-center justify-center gap-2 hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20">
-                      <ShoppingBag className="w-4 h-4" /> Order
+                      <ShoppingBag className="w-4 h-4" /> View Tenders
                    </button>
                  </Link>
               </div>
             </div>
           </motion.div>
-        );
-      })}
+          );
+        })}
+      </div>
     </div>
   );
 }

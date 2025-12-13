@@ -1,6 +1,6 @@
 import { PRODUCTS } from "@/lib/mockData";
 import { Link, useRoute } from "wouter";
-import { ArrowLeft, MapPin, Share2, ShieldCheck, Sprout, Droplets, Sun, Thermometer, MessageCircle, Send } from "lucide-react";
+import { ArrowLeft, MapPin, Share2, ShieldCheck, Sprout, Droplets, Sun, Thermometer, MessageCircle, Send, BadgeCheck, HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { motion } from "framer-motion";
@@ -120,32 +120,57 @@ export default function ProductDetails() {
            <p className="text-xs text-muted-foreground mt-2 text-center">Data updated 5 mins ago via FarmIoT™ Sensors</p>
         </div>
 
-        {/* Comments Section */}
+        {/* Professional Q&A Section */}
         <div>
-          <h3 className="font-bold text-lg mb-4">Questions & Reviews (3)</h3>
+          <div className="flex items-center justify-between mb-4">
+             <h3 className="font-bold text-lg">Buyer Questions (3)</h3>
+             <span className="text-xs text-muted-foreground font-medium">All answered</span>
+          </div>
+          
           <div className="space-y-4">
-             <div className="flex gap-3">
-               <div className="w-8 h-8 rounded-full bg-gray-200 flex-shrink-0" />
-               <div className="bg-muted/30 p-3 rounded-2xl rounded-tl-none flex-1">
-                 <p className="text-xs font-bold mb-1">Hotel Annapurna</p>
-                 <p className="text-sm">Is this suitable for salad usage?</p>
-               </div>
+             {/* Question 1 */}
+             <div className="border-b border-border/50 pb-4">
+                <div className="flex items-start gap-2 mb-2">
+                   <HelpCircle className="w-4 h-4 text-muted-foreground mt-0.5" />
+                   <p className="text-sm font-semibold text-foreground">Is this suitable for commercial salad usage?</p>
+                </div>
+                <div className="flex items-start gap-2 pl-6">
+                   <div className="min-w-[16px] mt-0.5">
+                     <BadgeCheck className="w-4 h-4 text-primary" />
+                   </div>
+                   <div>
+                     <p className="text-sm text-muted-foreground leading-relaxed">
+                       Yes, these are Grade A salad tomatoes. They are harvested at peak ripeness to ensure firmness and flavor. Ideal for restaurants and hotels.
+                     </p>
+                     <p className="text-[10px] text-muted-foreground mt-1 font-medium">Answered by Farmer • 2 days ago</p>
+                   </div>
+                </div>
              </div>
-             
-             <div className="flex gap-3 flex-row-reverse">
-               <img src={product.farmerImage} className="w-8 h-8 rounded-full flex-shrink-0 border border-white shadow-sm" />
-               <div className="bg-primary/10 p-3 rounded-2xl rounded-tr-none flex-1">
-                 <p className="text-xs font-bold mb-1 text-primary">Ram Bahadur (Farmer)</p>
-                 <p className="text-sm">Yes! These are salad-grade tomatoes, very firm and juicy.</p>
-               </div>
+
+             {/* Question 2 */}
+             <div className="border-b border-border/50 pb-4">
+                <div className="flex items-start gap-2 mb-2">
+                   <HelpCircle className="w-4 h-4 text-muted-foreground mt-0.5" />
+                   <p className="text-sm font-semibold text-foreground">What is the shelf life after delivery?</p>
+                </div>
+                <div className="flex items-start gap-2 pl-6">
+                   <div className="min-w-[16px] mt-0.5">
+                     <BadgeCheck className="w-4 h-4 text-primary" />
+                   </div>
+                   <div>
+                     <p className="text-sm text-muted-foreground leading-relaxed">
+                       If stored between 10-15°C, they stay fresh for 7-10 days. We recommend immediate refrigeration for longer storage.
+                     </p>
+                     <p className="text-[10px] text-muted-foreground mt-1 font-medium">Answered by Farmer • 3 days ago</p>
+                   </div>
+                </div>
              </div>
           </div>
 
-          <div className="mt-4 relative">
-             <Input placeholder="Ask a question..." className="pl-4 pr-12 h-12 rounded-full bg-white border-border shadow-sm" />
-             <button className="absolute right-1 top-1 h-10 w-10 bg-primary text-white rounded-full flex items-center justify-center hover:bg-primary/90">
-               <Send className="w-4 h-4" />
-             </button>
+          <div className="mt-4">
+             <Button variant="outline" className="w-full text-xs font-bold border-dashed border-2">
+               Ask a question
+             </Button>
           </div>
         </div>
       </div>

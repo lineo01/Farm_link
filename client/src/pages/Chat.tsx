@@ -1,7 +1,8 @@
 import { CHATS } from "@/lib/mockData";
-import { Search, MoreVertical, Phone, Video, CreditCard, Send } from "lucide-react";
+import { Search, Phone, Video, CreditCard, Send, ArrowRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
 
 export default function Chat() {
   const [activeChat, setActiveChat] = useState<number | null>(null);
@@ -46,25 +47,26 @@ export default function Chat() {
              </div>
            </div>
 
-           {/* Payment Request Bubble */}
-           <div className="flex justify-start w-full">
-              <div className="bg-white border border-border p-3 rounded-2xl rounded-tl-none max-w-[85%] shadow-sm space-y-2">
-                 <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                    <CreditCard className="w-3 h-3" /> Payment Request
+           {/* Payment Request Bubble - SENT BY FARMER (Current User) */}
+           <div className="flex justify-end w-full">
+              <div className="bg-primary/5 border border-primary/20 p-3 rounded-2xl rounded-tr-none max-w-[85%] shadow-sm space-y-2">
+                 <div className="flex items-center gap-2 text-xs font-bold text-primary uppercase tracking-wider">
+                    <CreditCard className="w-3 h-3" /> Payment Request Sent
                  </div>
-                 <div className="text-xl font-bold">Rs. 15,000</div>
+                 <div className="text-xl font-bold text-foreground">Rs. 15,000</div>
                  <p className="text-xs text-muted-foreground">For 250kg Tomatoes</p>
-                 <div className="grid grid-cols-2 gap-2 mt-2">
-                    <button className="bg-green-600 text-white py-2 rounded-lg text-xs font-bold hover:bg-green-700">eSewa</button>
-                    <button className="bg-purple-600 text-white py-2 rounded-lg text-xs font-bold hover:bg-purple-700">Khalti</button>
+                 <div className="flex items-center gap-2 mt-2 pt-2 border-t border-primary/10">
+                    <span className="text-xs font-medium text-orange-600 bg-orange-100 px-2 py-0.5 rounded-full">Pending</span>
+                    <span className="text-[10px] text-muted-foreground ml-auto">Via eSewa</span>
                  </div>
               </div>
            </div>
         </div>
 
         <div className="p-3 border-t border-border bg-white flex items-center gap-2">
-           <button className="p-2 text-muted-foreground hover:bg-muted rounded-full transition-colors">
+           <button className="p-2 text-primary bg-primary/10 hover:bg-primary/20 rounded-full transition-colors group relative">
              <CreditCard className="w-5 h-5" />
+             <span className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-black text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 whitespace-nowrap pointer-events-none transition-opacity">Request Payment</span>
            </button>
            <Input placeholder="Type a message..." className="rounded-full bg-muted/30 border-none" />
            <button className="p-2 bg-primary text-white rounded-full hover:bg-primary/90 transition-colors shadow-sm">

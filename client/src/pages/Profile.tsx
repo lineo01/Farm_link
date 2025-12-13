@@ -1,15 +1,18 @@
 import farmerImage from "@assets/generated_images/friendly_nepali_farmer_portrait.png";
+import supermarketImage from "@assets/generated_images/modern_supermarket_logo_on_glass_building.png";
+import hotelImage from "@assets/generated_images/luxury_hotel_exterior.png";
+import wholesaleImage from "@assets/generated_images/wholesale_market_warehouse.png";
 import { Button } from "@/components/ui/button";
-import { Settings, MapPin, Phone, Star, Package, TrendingUp, TrendingDown, Wallet, FileText, Users, Building2, ChevronRight } from "lucide-react";
+import { Settings, MapPin, Phone, Star, Package, TrendingUp, TrendingDown, Wallet, FileText, Users, Building2, ChevronRight, Plus } from "lucide-react";
 import { BALANCE_SHEET } from "@/lib/mockData";
 import { cn } from "@/lib/utils";
 
 export default function Profile() {
   const SUPPLY_NETWORK = [
-    { id: 1, name: "Bhat Bhateni Supermarket", type: "Retail", status: "Active" },
-    { id: 2, name: "Hotel Annapurna", type: "Hospitality", status: "Active" },
-    { id: 3, name: "Kalimati Wholesaler", type: "Wholesale", status: "Active" },
-    { id: 4, name: "Big Mart", type: "Retail", status: "Pending" },
+    { id: 1, name: "Bhat Bhateni", type: "Retail", status: "Active", image: supermarketImage },
+    { id: 2, name: "Hotel Annapurna", type: "Hospitality", status: "Active", image: hotelImage },
+    { id: 3, name: "Kalimati Market", type: "Wholesale", status: "Active", image: wholesaleImage },
+    { id: 4, name: "Big Mart", type: "Retail", status: "Pending", image: "https://images.unsplash.com/photo-1578916171728-46686eac8d58?auto=format&fit=crop&q=80&w=200" },
   ];
 
   return (
@@ -62,46 +65,42 @@ export default function Profile() {
           </div>
         </div>
 
-        {/* Supply Network Card */}
-        <div className="bg-white rounded-2xl shadow-sm border border-border overflow-hidden mb-6">
-          <div className="p-4 border-b border-border bg-muted/20 flex items-center justify-between">
-             <div className="flex items-center gap-2">
-               <div className="bg-primary/10 p-2 rounded-lg">
-                 <Users className="w-4 h-4 text-primary" />
-               </div>
-               <h3 className="font-bold text-sm">My Supply Network</h3>
-             </div>
-             <span className="text-xs font-bold bg-primary text-white px-2 py-1 rounded-full">{SUPPLY_NETWORK.length} Partners</span>
-          </div>
-          
-          <div className="divide-y divide-border/50">
-             {SUPPLY_NETWORK.map((partner) => (
-               <div key={partner.id} className="p-4 flex items-center justify-between hover:bg-muted/30 transition-colors">
-                  <div className="flex items-center gap-3">
-                     <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-muted-foreground">
-                        <Building2 className="w-5 h-5" />
-                     </div>
-                     <div>
-                        <p className="font-bold text-sm text-foreground">{partner.name}</p>
-                        <p className="text-xs text-muted-foreground">{partner.type}</p>
-                     </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                     <span className={cn(
-                       "text-[10px] font-bold px-2 py-1 rounded-full",
-                       partner.status === 'Active' ? "bg-green-100 text-green-700" : "bg-orange-100 text-orange-700"
-                     )}>
-                       {partner.status}
-                     </span>
-                     <ChevronRight className="w-4 h-4 text-muted-foreground/50" />
-                  </div>
-               </div>
-             ))}
-          </div>
-          
-          <button className="w-full py-3 text-xs font-bold text-primary hover:bg-primary/5 transition-colors border-t border-border">
-             + Add New Partner
-          </button>
+        {/* Visual Supply Network */}
+        <div className="mb-8">
+           <div className="flex items-center justify-between mb-4 px-1">
+             <h3 className="font-bold text-lg">My Network</h3>
+             <span className="text-xs font-bold text-primary bg-primary/10 px-3 py-1 rounded-full">{SUPPLY_NETWORK.length} Partners</span>
+           </div>
+           
+           <div className="grid grid-cols-2 gap-3">
+              {SUPPLY_NETWORK.map((partner) => (
+                <div key={partner.id} className="bg-white p-3 rounded-2xl border border-border shadow-sm relative overflow-hidden group">
+                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10" />
+                   <img src={partner.image} className="absolute inset-0 w-full h-full object-cover transition-transform group-hover:scale-110" />
+                   
+                   <div className="relative z-20 h-24 flex flex-col justify-end text-white">
+                      <p className="font-bold text-sm leading-tight mb-0.5">{partner.name}</p>
+                      <p className="text-[10px] opacity-80 mb-2">{partner.type}</p>
+                      
+                      <div className="flex items-center gap-1">
+                         <div className={cn(
+                           "w-2 h-2 rounded-full",
+                           partner.status === 'Active' ? "bg-green-500" : "bg-orange-500"
+                         )} />
+                         <span className="text-[10px] font-medium">{partner.status}</span>
+                      </div>
+                   </div>
+                </div>
+              ))}
+              
+              {/* Add New Card */}
+              <button className="bg-muted/30 border-2 border-dashed border-border rounded-2xl h-32 flex flex-col items-center justify-center gap-2 hover:bg-muted/50 transition-colors group">
+                 <div className="w-10 h-10 rounded-full bg-white border border-border flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+                   <Plus className="w-5 h-5 text-muted-foreground" />
+                 </div>
+                 <span className="text-xs font-bold text-muted-foreground">Add Partner</span>
+              </button>
+           </div>
         </div>
 
         {/* Balance Sheet Card */}
