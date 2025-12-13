@@ -1,28 +1,35 @@
-import { Switch, Route } from "wouter";
-import { queryClient } from "./lib/queryClient";
+import { Switch, Route, useLocation } from "wouter";
 import { QueryClientProvider } from "@tanstack/react-query";
+import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import Home from "@/pages/Home";
+import Post from "@/pages/Post";
+import Notifications from "@/pages/Notifications";
+import Chat from "@/pages/Chat";
+import Profile from "@/pages/Profile";
 import NotFound from "@/pages/not-found";
+import { MobileLayout } from "@/components/layout/MobileLayout";
 
 function Router() {
   return (
-    <Switch>
-      {/* Add pages below */}
-      {/* <Route path="/" component={Home}/> */}
-      {/* Fallback to 404 */}
-      <Route component={NotFound} />
-    </Switch>
+    <MobileLayout>
+      <Switch>
+        <Route path="/" component={Home} />
+        <Route path="/post" component={Post} />
+        <Route path="/notifications" component={Notifications} />
+        <Route path="/chat" component={Chat} />
+        <Route path="/profile" component={Profile} />
+        <Route component={NotFound} />
+      </Switch>
+    </MobileLayout>
   );
 }
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Router />
-      </TooltipProvider>
+      <Toaster />
+      <Router />
     </QueryClientProvider>
   );
 }
