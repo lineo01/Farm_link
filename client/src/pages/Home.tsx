@@ -1,5 +1,5 @@
 import { PRODUCTS, MARKET_RATES } from "@/lib/mockData";
-import { Heart, MapPin, MessageCircle, ShoppingBag, TrendingUp, TrendingDown, Minus, HandCoins } from "lucide-react";
+import { Heart, MapPin, MessageCircle, ShoppingBag, TrendingUp, TrendingDown, Minus, HandCoins, ArrowRight } from "lucide-react";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Link } from "wouter";
@@ -17,7 +17,7 @@ export default function Home() {
   };
 
   return (
-    <div className="space-y-4 bg-muted/20 min-h-full pb-8">
+    <div className="space-y-6 bg-muted/20 min-h-full pb-8 pt-2">
       {PRODUCTS.map((product, index) => {
         // Mock market logic
         const marketRate = MARKET_RATES[product.name as keyof typeof MARKET_RATES];
@@ -29,20 +29,24 @@ export default function Home() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
-            className="bg-white border-b-4 border-muted shadow-sm"
+            className="bg-white border-y border-border/50 sm:border sm:rounded-3xl sm:mx-4 shadow-sm overflow-hidden"
           >
             {/* Marketplace Header */}
-            <div className="px-4 py-3 flex items-center justify-between border-b border-border/50">
+            <div className="px-4 py-3 flex items-center justify-between bg-white/50 backdrop-blur-sm">
                <div className="flex items-center gap-3">
-                  <img 
-                    src={product.farmerImage} 
-                    alt={product.farmer}
-                    className="w-9 h-9 rounded-full object-cover border border-border" 
-                  />
+                  <div className="relative">
+                    <img 
+                      src={product.farmerImage} 
+                      alt={product.farmer}
+                      className="w-10 h-10 rounded-full object-cover ring-2 ring-white shadow-sm" 
+                    />
+                    <div className="absolute -bottom-1 -right-1 bg-green-500 text-white text-[8px] px-1.5 py-0.5 rounded-full font-bold border-2 border-white">
+                      PRO
+                    </div>
+                  </div>
                   <div>
                     <h3 className="font-bold text-sm text-foreground flex items-center gap-1">
                       {product.farmer}
-                      <span className="bg-primary/10 text-primary text-[10px] px-1.5 py-0.5 rounded-full font-bold">VERIFIED</span>
                     </h3>
                     <div className="flex items-center text-xs text-muted-foreground gap-1">
                       <MapPin className="w-3 h-3" />
@@ -50,86 +54,99 @@ export default function Home() {
                     </div>
                   </div>
                </div>
-               <span className="text-xs text-muted-foreground font-mono">{product.postedTime}</span>
+               <span className="text-xs font-medium text-muted-foreground bg-muted/50 px-2 py-1 rounded-lg">
+                 {product.postedTime}
+               </span>
             </div>
 
             {/* Product Image */}
-            <div className="relative aspect-square w-full bg-muted overflow-hidden group">
-              <img 
-                src={product.image} 
-                alt={product.name}
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
-              />
-              {/* Floating Price Tag */}
-              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 pt-12">
-                 <div className="flex justify-between items-end">
-                    <div>
-                      <p className="text-white/80 text-xs font-medium mb-1">{product.name}</p>
-                      <p className="text-white text-2xl font-bold">{product.price}</p>
-                    </div>
-                    {/* Order Button in Image */}
-                    <button className="bg-white text-black px-4 py-2 rounded-full font-bold text-sm shadow-lg hover:bg-gray-100 flex items-center gap-2 transform transition active:scale-95">
-                       <ShoppingBag className="w-4 h-4" /> Order Now
-                    </button>
-                 </div>
+            <Link href={`/product/${product.id}`}>
+              <div className="relative aspect-square w-full bg-muted overflow-hidden group cursor-pointer">
+                <img 
+                  src={product.image} 
+                  alt={product.name}
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
+                />
+                
+                {/* Floating Price Tag & Overlay */}
+                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent p-5 pt-20 flex flex-col justify-end">
+                   <div className="flex justify-between items-end mb-1">
+                      <div className="text-white">
+                        <p className="text-sm font-medium opacity-90 mb-0.5">{product.name}</p>
+                        <p className="text-3xl font-bold tracking-tight">{product.price}</p>
+                      </div>
+                   </div>
+                   
+                   {/* Tap to view details hint */}
+                   <div className="flex items-center gap-2 text-white/60 text-xs font-medium mt-2">
+                     <span>Tap to view farm details</span>
+                     <ArrowRight className="w-3 h-3" />
+                   </div>
+                </div>
+
+                {/* Badge Overlay */}
+                {isGoodPrice && (
+                   <div className="absolute top-4 right-4 bg-green-500/90 backdrop-blur-md text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg border border-white/20">
+                     Best Value
+                   </div>
+                )}
               </div>
-            </div>
+            </Link>
 
             {/* Commerce Actions */}
-            <div className="px-4 py-3">
+            <div className="px-4 py-4 space-y-4">
               {/* Market Rate Comparison */}
               {marketRate && (
-                <div className="bg-muted/30 rounded-lg p-2 flex items-center justify-between mb-3 text-xs border border-border/50">
+                <div className="bg-blue-50/50 rounded-xl p-3 flex items-center justify-between text-xs border border-blue-100">
                    <div className="flex items-center gap-2">
                       <div className={cn(
-                        "w-6 h-6 rounded-full flex items-center justify-center",
+                        "w-7 h-7 rounded-full flex items-center justify-center shadow-sm",
                         marketRate.trend === 'up' ? "bg-red-100 text-red-600" : "bg-green-100 text-green-600"
                       )}>
-                        {marketRate.trend === 'up' ? <TrendingUp className="w-3 h-3" /> : 
-                         marketRate.trend === 'down' ? <TrendingDown className="w-3 h-3" /> :
-                         <Minus className="w-3 h-3" />
+                        {marketRate.trend === 'up' ? <TrendingUp className="w-3.5 h-3.5" /> : 
+                         marketRate.trend === 'down' ? <TrendingDown className="w-3.5 h-3.5" /> :
+                         <Minus className="w-3.5 h-3.5" />
                         }
                       </div>
-                      <span className="text-muted-foreground">
-                        Market Rate: <span className="font-semibold text-foreground">Rs. {marketRate.min}-{marketRate.max}</span>
-                      </span>
+                      <div>
+                        <p className="text-muted-foreground font-medium">Market Rate</p>
+                        <p className="font-bold text-foreground">Rs. {marketRate.min}-{marketRate.max}</p>
+                      </div>
                    </div>
-                   <span className={cn(
-                     "font-bold px-2 py-0.5 rounded text-[10px]",
-                     isGoodPrice ? "bg-green-100 text-green-700" : "bg-orange-100 text-orange-700"
-                   )}>
-                     {isGoodPrice ? "GOOD DEAL" : "ABOVE MARKET"}
-                   </span>
+                   <div className="text-right">
+                     <p className="text-[10px] text-muted-foreground">vs Market</p>
+                     <p className={cn(
+                       "font-bold",
+                       isGoodPrice ? "text-green-600" : "text-orange-600"
+                     )}>
+                       {isGoodPrice ? "Lower" : "Higher"}
+                     </p>
+                   </div>
                 </div>
               )}
 
-              <p className="text-sm text-foreground mb-4 leading-relaxed">
+              <p className="text-sm text-foreground/80 leading-relaxed line-clamp-2">
                 {product.description}
               </p>
 
               {/* Action Buttons */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-[1fr_1fr_auto] gap-2">
                  <Link href="/chat">
-                   <button className="w-full py-2.5 rounded-xl border border-border font-semibold text-sm flex items-center justify-center gap-2 hover:bg-muted/50 transition-colors">
-                      <HandCoins className="w-4 h-4" /> Negotiate
+                   <button className="w-full py-3 rounded-xl bg-muted/50 font-bold text-sm flex items-center justify-center gap-2 hover:bg-muted transition-colors text-foreground/80">
+                      <HandCoins className="w-4 h-4" /> Offer
                    </button>
                  </Link>
                  <Link href="/chat">
-                   <button className="w-full py-2.5 rounded-xl border border-border font-semibold text-sm flex items-center justify-center gap-2 hover:bg-muted/50 transition-colors">
-                      <MessageCircle className="w-4 h-4" /> Message
+                   <button className="w-full py-3 rounded-xl bg-primary text-white font-bold text-sm flex items-center justify-center gap-2 hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20">
+                      <ShoppingBag className="w-4 h-4" /> Order
                    </button>
                  </Link>
-              </div>
-
-              {/* Likes/Social */}
-              <div className="mt-4 flex items-center gap-1">
                  <button 
                   onClick={() => toggleLike(product.id)}
-                  className="p-1 -ml-1 rounded-full hover:bg-red-50 transition-colors"
+                  className="w-12 rounded-xl border border-border flex items-center justify-center hover:bg-red-50 transition-colors"
                  >
                    <Heart className={cn("w-5 h-5", likedPosts.includes(product.id) ? "fill-red-500 text-red-500" : "text-muted-foreground")} />
                  </button>
-                 <span className="text-xs text-muted-foreground font-medium">{product.likes} people interested</span>
               </div>
             </div>
           </motion.div>

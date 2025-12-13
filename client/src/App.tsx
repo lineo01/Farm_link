@@ -8,6 +8,7 @@ import Notifications from "@/pages/Notifications";
 import Chat from "@/pages/Chat";
 import Profile from "@/pages/Profile";
 import SmartAssistant from "@/pages/SmartAssistant";
+import ProductDetails from "@/pages/ProductDetails";
 import NotFound from "@/pages/not-found";
 import { MobileLayout } from "@/components/layout/MobileLayout";
 
@@ -21,6 +22,7 @@ function Router() {
         <Route path="/chat" component={Chat} />
         <Route path="/profile" component={Profile} />
         <Route path="/assistant" component={SmartAssistant} />
+        <Route path="/product/:id" component={ProductDetails} />
         <Route component={NotFound} />
       </Switch>
     </MobileLayout>
