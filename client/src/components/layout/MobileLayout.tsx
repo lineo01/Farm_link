@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Home, PlusCircle, Bell, MessageSquare, User, Sprout } from "lucide-react";
+import { Home, Plus, MessageSquare, User, Sprout, Bot, Bell } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface MobileLayoutProps {
@@ -11,8 +11,7 @@ export function MobileLayout({ children }: MobileLayoutProps) {
 
   const navItems = [
     { icon: Home, label: "Home", path: "/" },
-    { icon: PlusCircle, label: "Post", path: "/post" },
-    { icon: Bell, label: "Alerts", path: "/notifications" },
+    { icon: Bot, label: "Assistant", path: "/assistant" },
     { icon: MessageSquare, label: "Chat", path: "/chat" },
     { icon: User, label: "Profile", path: "/profile" },
   ];
@@ -28,20 +27,38 @@ export function MobileLayout({ children }: MobileLayoutProps) {
             </div>
             <h1 className="text-xl font-serif font-bold text-foreground">Krishi Bajar</h1>
           </div>
+          <Link href="/notifications">
+            <div className="relative p-2 hover:bg-muted rounded-full transition-colors cursor-pointer">
+              <Bell className="w-5 h-5 text-foreground" />
+              <span className="absolute top-1.5 right-2 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
+            </div>
+          </Link>
         </header>
 
         {/* Main Content */}
-        <main className="flex-1 overflow-y-auto pb-20 no-scrollbar">
+        <main className="flex-1 overflow-y-auto pb-24 no-scrollbar">
           {children}
         </main>
 
+        {/* Floating Post Button */}
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40">
+          <Link href="/post">
+            <button className="bg-black text-white p-4 rounded-full shadow-xl shadow-black/20 hover:scale-105 active:scale-95 transition-all border-4 border-white flex items-center justify-center">
+              <Plus className="w-6 h-6" strokeWidth={3} />
+            </button>
+          </Link>
+        </div>
+
         {/* Bottom Navigation */}
-        <nav className="fixed bottom-0 w-full max-w-md bg-white border-t border-border px-2 py-2 pb-safe z-30">
-          <ul className="flex justify-around items-center">
-            {navItems.map((item) => {
+        <nav className="fixed bottom-0 w-full max-w-md bg-white border-t border-border px-6 py-2 pb-safe z-30">
+          <ul className="flex justify-between items-center">
+            {navItems.map((item, index) => {
               const isActive = location === item.path;
+              // Add a gap in the middle for the floating button
+              const isMiddle = index === 1; // After the second item
+              
               return (
-                <li key={item.path}>
+                <li key={item.path} className={cn(isMiddle && "mr-12")}>
                   <Link href={item.path} className={cn(
                       "flex flex-col items-center p-2 rounded-xl transition-all duration-300 cursor-pointer",
                       isActive 

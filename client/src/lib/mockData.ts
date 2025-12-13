@@ -94,3 +94,76 @@ export const CHATS = [
     avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=200"
   }
 ];
+
+export const MARKET_RATES = {
+  "Organic Red Tomatoes": { min: 55, max: 65, trend: "up" },
+  "Fresh Spinach (Saag)": { min: 35, max: 45, trend: "stable" },
+  "Local Oranges (Junar)": { min: 110, max: 130, trend: "down" },
+  "Cauliflower": { min: 45, max: 55, trend: "up" }
+};
+
+export const MISSIONS = [
+  {
+    id: 1,
+    title: "Organic Composting",
+    description: "Create your own compost pit using farm waste.",
+    xp: 500,
+    status: "active",
+    progress: 60
+  },
+  {
+    id: 2,
+    title: "Water Conservation",
+    description: "Implement drip irrigation for your tomato crop.",
+    xp: 1000,
+    status: "completed",
+    progress: 100
+  },
+  {
+    id: 3,
+    title: "Natural Pest Control",
+    description: "Use Neem oil instead of chemical pesticides.",
+    xp: 300,
+    status: "locked",
+    progress: 0
+  }
+];
+
+export const TIPS_LEADERBOARD = [
+  {
+    id: 1,
+    farmer: "Sita Devi",
+    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200",
+    tip: "Mix cow urine with water (1:10) for a great natural fertilizer.",
+    likes: 156
+  },
+  {
+    id: 2,
+    farmer: "Ram Bahadur",
+    avatar: farmerImage,
+    tip: "Plant marigolds around tomatoes to keep pests away.",
+    likes: 124
+  },
+  {
+    id: 3,
+    farmer: "Hari Krishna",
+    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200",
+    tip: "Harvest spinach early morning for longer shelf life.",
+    likes: 98
+  }
+];
+
+export const BALANCE_SHEET = {
+  income: [
+    { id: 1, source: "Tomato Sales", amount: 15000, date: "2024-03-10" },
+    { id: 2, source: "Spinach Sales", amount: 5000, date: "2024-03-12" },
+  ],
+  expenses: [
+    { id: 1, item: "Seeds", amount: 2000, date: "2024-03-01" },
+    { id: 2, item: "Fertilizer", amount: 3500, date: "2024-03-05" },
+    { id: 3, item: "Transport", amount: 1500, date: "2024-03-10" },
+  ],
+  totalRevenue: 20000,
+  totalExpense: 7000,
+  netProfit: 13000
+};
