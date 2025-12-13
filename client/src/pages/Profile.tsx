@@ -1,10 +1,17 @@
 import farmerImage from "@assets/generated_images/friendly_nepali_farmer_portrait.png";
 import { Button } from "@/components/ui/button";
-import { Settings, MapPin, Phone, Star, Package, TrendingUp, TrendingDown, Wallet, FileText } from "lucide-react";
+import { Settings, MapPin, Phone, Star, Package, TrendingUp, TrendingDown, Wallet, FileText, Users, Building2, ChevronRight } from "lucide-react";
 import { BALANCE_SHEET } from "@/lib/mockData";
 import { cn } from "@/lib/utils";
 
 export default function Profile() {
+  const SUPPLY_NETWORK = [
+    { id: 1, name: "Bhat Bhateni Supermarket", type: "Retail", status: "Active" },
+    { id: 2, name: "Hotel Annapurna", type: "Hospitality", status: "Active" },
+    { id: 3, name: "Kalimati Wholesaler", type: "Wholesale", status: "Active" },
+    { id: 4, name: "Big Mart", type: "Retail", status: "Pending" },
+  ];
+
   return (
     <div className="bg-muted/10 min-h-full">
       {/* Cover */}
@@ -53,6 +60,48 @@ export default function Profile() {
               <TrendingUp className="w-3 h-3" /> Active
             </div>
           </div>
+        </div>
+
+        {/* Supply Network Card */}
+        <div className="bg-white rounded-2xl shadow-sm border border-border overflow-hidden mb-6">
+          <div className="p-4 border-b border-border bg-muted/20 flex items-center justify-between">
+             <div className="flex items-center gap-2">
+               <div className="bg-primary/10 p-2 rounded-lg">
+                 <Users className="w-4 h-4 text-primary" />
+               </div>
+               <h3 className="font-bold text-sm">My Supply Network</h3>
+             </div>
+             <span className="text-xs font-bold bg-primary text-white px-2 py-1 rounded-full">{SUPPLY_NETWORK.length} Partners</span>
+          </div>
+          
+          <div className="divide-y divide-border/50">
+             {SUPPLY_NETWORK.map((partner) => (
+               <div key={partner.id} className="p-4 flex items-center justify-between hover:bg-muted/30 transition-colors">
+                  <div className="flex items-center gap-3">
+                     <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-muted-foreground">
+                        <Building2 className="w-5 h-5" />
+                     </div>
+                     <div>
+                        <p className="font-bold text-sm text-foreground">{partner.name}</p>
+                        <p className="text-xs text-muted-foreground">{partner.type}</p>
+                     </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                     <span className={cn(
+                       "text-[10px] font-bold px-2 py-1 rounded-full",
+                       partner.status === 'Active' ? "bg-green-100 text-green-700" : "bg-orange-100 text-orange-700"
+                     )}>
+                       {partner.status}
+                     </span>
+                     <ChevronRight className="w-4 h-4 text-muted-foreground/50" />
+                  </div>
+               </div>
+             ))}
+          </div>
+          
+          <button className="w-full py-3 text-xs font-bold text-primary hover:bg-primary/5 transition-colors border-t border-border">
+             + Add New Partner
+          </button>
         </div>
 
         {/* Balance Sheet Card */}

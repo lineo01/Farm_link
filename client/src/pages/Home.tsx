@@ -1,21 +1,11 @@
 import { PRODUCTS, MARKET_RATES } from "@/lib/mockData";
-import { Heart, MapPin, MessageCircle, ShoppingBag, TrendingUp, TrendingDown, Minus, HandCoins, ArrowRight } from "lucide-react";
+import { MapPin, MessageCircle, ShoppingBag, TrendingUp, TrendingDown, Minus, HandCoins, ArrowRight } from "lucide-react";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Link } from "wouter";
 import { cn } from "@/lib/utils";
 
 export default function Home() {
-  const [likedPosts, setLikedPosts] = useState<number[]>([]);
-
-  const toggleLike = (id: number) => {
-    if (likedPosts.includes(id)) {
-      setLikedPosts(likedPosts.filter(postId => postId !== id));
-    } else {
-      setLikedPosts([...likedPosts, id]);
-    }
-  };
-
   return (
     <div className="space-y-6 bg-muted/20 min-h-full pb-8 pt-2">
       {PRODUCTS.map((product, index) => {
@@ -130,10 +120,10 @@ export default function Home() {
               </p>
 
               {/* Action Buttons */}
-              <div className="grid grid-cols-[1fr_1fr_auto] gap-2">
+              <div className="grid grid-cols-2 gap-3">
                  <Link href="/chat">
                    <button className="w-full py-3 rounded-xl bg-muted/50 font-bold text-sm flex items-center justify-center gap-2 hover:bg-muted transition-colors text-foreground/80">
-                      <HandCoins className="w-4 h-4" /> Offer
+                      <MessageCircle className="w-4 h-4" /> Message
                    </button>
                  </Link>
                  <Link href="/chat">
@@ -141,12 +131,6 @@ export default function Home() {
                       <ShoppingBag className="w-4 h-4" /> Order
                    </button>
                  </Link>
-                 <button 
-                  onClick={() => toggleLike(product.id)}
-                  className="w-12 rounded-xl border border-border flex items-center justify-center hover:bg-red-50 transition-colors"
-                 >
-                   <Heart className={cn("w-5 h-5", likedPosts.includes(product.id) ? "fill-red-500 text-red-500" : "text-muted-foreground")} />
-                 </button>
               </div>
             </div>
           </motion.div>
