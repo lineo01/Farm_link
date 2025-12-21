@@ -21,12 +21,19 @@ export async function registerRoutes(
 
   app.post("/api/products", isAuthenticated, async (req: any, res) => {
     try {
-      const validated = insertProductSchema.parse(req.body);
+      const userId = req.user?.claims?.sub;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      const validated = insertProductSchema.parse({
+        ...req.body,
+        userId: userId,
+      });
       const product = await storage.createProduct(validated);
       res.status(201).json(product);
     } catch (error) {
       console.error("Error creating product:", error);
-      res.status(400).json({ message: "Failed to create product" });
+      res.status(400).json({ message: "Failed to create product", error: String(error) });
     }
   });
 

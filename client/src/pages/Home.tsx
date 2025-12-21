@@ -1,23 +1,33 @@
-import { useState } from "react";
-import { Search, Filter, MapPin, ChevronDown, SlidersHorizontal } from "lucide-react";
-import { PRODUCTS, MARKET_RATES } from "@/lib/mockData";
+import { useState, useEffect } from "react";
+import { Search, Filter, MapPin, ChevronDown, SlidersHorizontal, Heart, MessageCircle, ShoppingBag, TrendingUp, TrendingDown, Minus, HandCoins, ArrowRight } from "lucide-react";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { Heart, MessageCircle, ShoppingBag, TrendingUp, TrendingDown, Minus, HandCoins, ArrowRight } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState("All");
   const [showFilters, setShowFilters] = useState(false);
 
-  // Mock filtering
-  const filteredProducts = PRODUCTS.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          product.farmer.toLowerCase().includes(searchQuery.toLowerCase());
+  // Fetch real products from API
+  const { data: products = [], isLoading } = useQuery({
+    queryKey: ["/api/products"],
+    queryFn: async () => {
+      const res = await fetch("/api/products");
+      if (!res.ok) throw new Error("Failed to fetch products");
+      return res.json();
+    },
+  });
+
+  // Filter products
+  const filteredProducts = products.filter((product: any) => {
+    const matchesSearch = product.name?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesFilter = activeFilter === "All" || product.location === activeFilter;
     return matchesSearch && matchesFilter;
   });
+
+  const locations = ["All", "Kathmandu", "Kavre", "Dhading", "Sindhuli", "Bhaktapur"];
 
   return (
     <div className="bg-muted/10 min-h-full pb-20">
@@ -31,10 +41,12 @@ export default function Home() {
             className="w-full pl-10 pr-4 py-3 bg-muted/30 border border-border/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            data-testid="input-search"
           />
           <button 
             onClick={() => setShowFilters(!showFilters)}
             className="absolute right-3 top-2.5 p-1.5 hover:bg-muted rounded-lg transition-colors"
+            data-testid="button-filter"
           >
             <SlidersHorizontal className="h-5 w-5 text-muted-foreground" />
           </button>
@@ -43,7 +55,7 @@ export default function Home() {
         {/* Filter Chips */}
         {showFilters && (
           <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2 animate-in slide-in-from-top-2">
-             {["All", "Kavre", "Dhading", "Sindhuli", "Bhaktapur"].map(loc => (
+             {locations.map(loc => (
                <button
                  key={loc}
                  onClick={() => setActiveFilter(loc)}
@@ -53,22 +65,20 @@ export default function Home() {
                      ? "bg-primary text-white border-primary" 
                      : "bg-white text-muted-foreground border-border hover:border-primary/50"
                  )}
+                 data-testid={`button-filter-${loc}`}
                >
                  {loc}
                </button>
              ))}
-             <button className="px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap border bg-white text-muted-foreground border-border flex items-center gap-1">
-                Qty: High to Low <ChevronDown className="w-3 h-3" />
-             </button>
           </div>
         )}
         
         {/* Tenders Banner */}
         <Link href="/tenders">
-          <div className="mt-2 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl p-3 text-white flex items-center justify-between shadow-lg shadow-blue-200 cursor-pointer hover:scale-[1.01] transition-transform">
+          <div className="mt-2 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl p-3 text-white flex items-center justify-between shadow-lg shadow-blue-200 cursor-pointer hover:scale-[1.01] transition-transform" data-testid="banner-tenders">
              <div>
                <p className="text-xs font-medium opacity-80">New Opportunities</p>
-               <p className="font-bold text-sm">3 Active Tenders for your crops</p>
+               <p className="font-bold text-sm">Active Tenders for your crops</p>
              </div>
              <div className="bg-white/20 p-2 rounded-lg">
                <ArrowRight className="w-4 h-4" />
@@ -77,136 +87,100 @@ export default function Home() {
         </Link>
       </div>
 
+      {/* Loading State */}
+      {isLoading && (
+        <div className="flex items-center justify-center py-20">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        </div>
+      )}
+
       {/* Product List */}
-      <div className="space-y-6 pt-4">
-        {filteredProducts.map((product, index) => {
-          const marketRate = MARKET_RATES[product.name as keyof typeof MARKET_RATES];
-          const isGoodPrice = marketRate && parseInt(product.price.split(' ')[1]) <= marketRate.max;
+      {!isLoading && (
+        <div className="space-y-6 pt-4 px-0 sm:px-4">
+          {filteredProducts.length === 0 ? (
+            <div className="text-center py-20">
+              <p className="text-muted-foreground">No products found. Be the first to post!</p>
+            </div>
+          ) : (
+            filteredProducts.map((product: any, index: number) => (
+              <motion.div 
+                key={product.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className="bg-white border-y border-border/50 sm:border sm:rounded-3xl sm:mx-0 shadow-sm overflow-hidden"
+                data-testid={`card-product-${product.id}`}
+              >
+              {/* Marketplace Header */}
+              <div className="px-4 py-3 flex items-center justify-between bg-white/50 backdrop-blur-sm">
+                 <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center text-white font-bold">
+                      {product.name?.[0] || "P"}
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-sm text-foreground">Farmer</h3>
+                      <div className="flex items-center text-xs text-muted-foreground gap-1">
+                        <MapPin className="w-3 h-3" />
+                        <span>{product.location || "Location unknown"}</span>
+                      </div>
+                    </div>
+                 </div>
+                 <span className="text-xs font-medium text-muted-foreground bg-muted/50 px-2 py-1 rounded-lg">
+                   {new Date(product.createdAt).toLocaleDateString()}
+                 </span>
+              </div>
 
-          return (
-            <motion.div 
-              key={product.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              className="bg-white border-y border-border/50 sm:border sm:rounded-3xl sm:mx-4 shadow-sm overflow-hidden"
-            >
-            {/* Marketplace Header */}
-            <div className="px-4 py-3 flex items-center justify-between bg-white/50 backdrop-blur-sm">
-               <div className="flex items-center gap-3">
-                  <div className="relative">
+              {/* Product Image */}
+              <Link href={`/product/${product.id}`}>
+                <div className="relative aspect-square w-full bg-muted overflow-hidden group cursor-pointer">
+                  {product.image ? (
                     <img 
-                      src={product.farmerImage} 
-                      alt={product.farmer}
-                      className="w-10 h-10 rounded-full object-cover ring-2 ring-white shadow-sm" 
+                      src={product.image} 
+                      alt={product.name}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                     />
-                    <div className="absolute -bottom-1 -right-1 bg-green-500 text-white text-[8px] px-1.5 py-0.5 rounded-full font-bold border-2 border-white">
-                      PRO
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-muted to-muted/50">
+                      <ShoppingBag className="w-12 h-12 text-muted-foreground/30" />
                     </div>
-                  </div>
+                  )}
+                </div>
+              </Link>
+
+              {/* Product Details */}
+              <div className="p-4 space-y-3">
+                <div>
+                  <h2 className="text-lg font-bold text-foreground text-truncate" data-testid={`text-name-${product.id}`}>
+                    {product.name}
+                  </h2>
+                  <p className="text-sm text-muted-foreground line-clamp-2">
+                    {product.description || "No description provided"}
+                  </p>
+                </div>
+
+                <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="font-bold text-sm text-foreground flex items-center gap-1">
-                      {product.farmer}
-                    </h3>
-                    <div className="flex items-center text-xs text-muted-foreground gap-1">
-                      <MapPin className="w-3 h-3" />
-                      <span>{product.location}</span>
-                    </div>
+                    <p className="text-2xl font-bold text-primary" data-testid={`text-price-${product.id}`}>
+                      Rs. {product.price}
+                    </p>
+                    <p className="text-xs text-muted-foreground">per {product.unit || "unit"}</p>
                   </div>
-               </div>
-               <span className="text-xs font-medium text-muted-foreground bg-muted/50 px-2 py-1 rounded-lg">
-                 {product.postedTime}
-               </span>
-            </div>
-
-            {/* Product Image */}
-            <Link href={`/product/${product.id}`}>
-              <div className="relative aspect-square w-full bg-muted overflow-hidden group cursor-pointer">
-                <img 
-                  src={product.image} 
-                  alt={product.name}
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
-                />
-                
-                {/* Floating Price Tag & Overlay */}
-                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent p-5 pt-20 flex flex-col justify-end">
-                   <div className="flex justify-between items-end mb-1">
-                      <div className="text-white">
-                        <p className="text-sm font-medium opacity-90 mb-0.5">{product.name}</p>
-                        <p className="text-3xl font-bold tracking-tight">{product.price}</p>
-                      </div>
-                   </div>
-                   
-                   {/* Tap to view details hint */}
-                   <div className="flex items-center gap-2 text-white/60 text-xs font-medium mt-2">
-                     <span>Tap to view farm details</span>
-                     <ArrowRight className="w-3 h-3" />
-                   </div>
+                  <div className="flex gap-2">
+                    <button className="bg-white border border-border/50 p-3 rounded-lg hover:bg-muted transition-colors" data-testid="button-like">
+                      <Heart className="w-5 h-5" />
+                    </button>
+                    <button className="bg-primary text-white px-6 py-3 rounded-lg font-bold hover:bg-primary/90 transition-colors flex items-center gap-2" data-testid="button-chat">
+                      <MessageCircle className="w-4 h-4" />
+                      <span className="hidden sm:inline">Chat</span>
+                    </button>
+                  </div>
                 </div>
-
-                {/* Badge Overlay */}
-                {isGoodPrice && (
-                   <div className="absolute top-4 right-4 bg-green-500/90 backdrop-blur-md text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg border border-white/20">
-                     Best Value
-                   </div>
-                )}
               </div>
-            </Link>
-
-            {/* Commerce Actions */}
-            <div className="px-4 py-4 space-y-4">
-              {/* Market Rate Comparison */}
-              {marketRate && (
-                <div className="bg-blue-50/50 rounded-xl p-3 flex items-center justify-between text-xs border border-blue-100">
-                   <div className="flex items-center gap-2">
-                      <div className={cn(
-                        "w-7 h-7 rounded-full flex items-center justify-center shadow-sm",
-                        marketRate.trend === 'up' ? "bg-red-100 text-red-600" : "bg-green-100 text-green-600"
-                      )}>
-                        {marketRate.trend === 'up' ? <TrendingUp className="w-3.5 h-3.5" /> : 
-                         marketRate.trend === 'down' ? <TrendingDown className="w-3.5 h-3.5" /> :
-                         <Minus className="w-3.5 h-3.5" />
-                        }
-                      </div>
-                      <div>
-                        <p className="text-muted-foreground font-medium">Market Rate</p>
-                        <p className="font-bold text-foreground">Rs. {marketRate.min}-{marketRate.max}</p>
-                      </div>
-                   </div>
-                   <div className="text-right">
-                     <p className="text-[10px] text-muted-foreground">vs Market</p>
-                     <p className={cn(
-                       "font-bold",
-                       isGoodPrice ? "text-green-600" : "text-orange-600"
-                     )}>
-                       {isGoodPrice ? "Lower" : "Higher"}
-                     </p>
-                   </div>
-                </div>
-              )}
-
-              <p className="text-sm text-foreground/80 leading-relaxed line-clamp-2">
-                {product.description}
-              </p>
-
-              {/* Action Buttons */}
-              <div className="grid grid-cols-2 gap-3">
-                 <Link href="/chat">
-                   <button className="w-full py-3 rounded-xl bg-muted/50 font-bold text-sm flex items-center justify-center gap-2 hover:bg-muted transition-colors text-foreground/80">
-                      <MessageCircle className="w-4 h-4" /> Message
-                   </button>
-                 </Link>
-                 <Link href="/tenders">
-                   <button className="w-full py-3 rounded-xl bg-primary text-white font-bold text-sm flex items-center justify-center gap-2 hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20">
-                      <ShoppingBag className="w-4 h-4" /> View Tenders
-                   </button>
-                 </Link>
-              </div>
-            </div>
-          </motion.div>
-          );
-        })}
-      </div>
+            </motion.div>
+            ))
+          )}
+        </div>
+      )}
     </div>
   );
 }
