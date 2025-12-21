@@ -8,6 +8,10 @@ import { z } from "zod";
 export { users, sessions } from "./models/auth";
 export type { User, UpsertUser } from "./models/auth";
 
+// Import chat models
+export { conversations, messages, insertConversationSchema, insertMessageSchema } from "./models/chat";
+export type { Conversation, InsertConversation, Message, InsertMessage } from "./models/chat";
+
 // Import users for use in foreign keys
 import { users } from "./models/auth";
 

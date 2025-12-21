@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { isAuthenticated } from "./replit_integrations/auth";
 import { insertProductSchema, insertTenderSchema, insertTipSchema, insertUserMissionSchema } from "@shared/schema";
+import { registerChatRoutes } from "./replit_integrations/chat";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -176,6 +177,9 @@ export async function registerRoutes(
       res.status(400).json({ message: "Failed to create supply network" });
     }
   });
+
+  // Register chat routes
+  registerChatRoutes(app);
 
   return httpServer;
 }
