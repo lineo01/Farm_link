@@ -85,7 +85,11 @@ export default function Post() {
       });
       return;
     }
-    submitProduct(formData);
+    // Send without large image base64 - just send URL if available
+    submitProduct({
+      ...formData,
+      image: formData.image.substring(0, 100) || "", // Just send a reference, not full base64
+    });
   };
 
   return (
