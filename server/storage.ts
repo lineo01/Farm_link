@@ -7,7 +7,7 @@ import {
   userMissions,
   tips,
   type User,
-  type UpsertUser,
+  type InsertUser,
   type Product,
   type InsertProduct,
   type Tender,
@@ -27,7 +27,8 @@ import { eq, desc } from "drizzle-orm";
 export interface IStorage {
   // Users
   getUser(id: string): Promise<User | undefined>;
-  createUser(user: UpsertUser): Promise<User>;
+  getUserByUsername(username: string): Promise<User | undefined>;
+  createUser(user: InsertUser): Promise<User>;
   
   // Products
   getProducts(): Promise<Product[]>;
@@ -62,7 +63,12 @@ export class DatabaseStorage implements IStorage {
     return user || undefined;
   }
 
-  async createUser(insertUser: UpsertUser): Promise<User> {
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
     const [user] = await db
       .insert(users)
       .values(insertUser)

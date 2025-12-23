@@ -4,16 +4,21 @@ import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// Import auth models (includes users and sessions tables)
-export { users, sessions } from "./models/auth";
-export type { User, UpsertUser } from "./models/auth";
-
-// Import chat models
-export { conversations, messages, insertConversationSchema, insertMessageSchema } from "./models/chat";
-export type { Conversation, InsertConversation, Message, InsertMessage } from "./models/chat";
-
-// Import users for use in foreign keys
-import { users } from "./models/auth";
+// Users/Farmers
+export const users = pgTable("users", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  username: text("username").notNull().unique(),
+  password: text("password").notNull(),
+  name: text("name").notNull(),
+  location: text("location").notNull(),
+  phone: text("phone"),
+  avatar: text("avatar"),
+  rating: decimal("rating", { precision: 2, scale: 1 }).default("0"),
+  totalSold: integer("total_sold").default(0),
+  yearsActive: decimal("years_active", { precision: 3, scale: 1 }).default("0"),
+  xp: integer("xp").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
 
 // Products
 export const products = pgTable("products", {
@@ -35,7 +40,7 @@ export const products = pgTable("products", {
 export const tenders = pgTable("tenders", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   buyerName: text("buyer_name").notNull(),
-  buyerType: text("buyer_type").notNull(),
+  buyerType: text("buyer_type").notNull(), // Retail, Hospitality, Wholesale
   itemName: text("item_name").notNull(),
   quantity: text("quantity").notNull(),
   priceMin: decimal("price_min", { precision: 10, scale: 2 }),
@@ -43,7 +48,7 @@ export const tenders = pgTable("tenders", {
   location: text("location").notNull(),
   description: text("description"),
   deadline: timestamp("deadline").notNull(),
-  status: text("status").default("open"),
+  status: text("status").default("open"), // open, closed, urgent
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -53,7 +58,7 @@ export const supplyNetworks = pgTable("supply_networks", {
   userId: varchar("user_id").notNull().references(() => users.id),
   partnerName: text("partner_name").notNull(),
   partnerType: text("partner_type").notNull(),
-  status: text("status").default("pending"),
+  status: text("status").default("pending"), // active, pending
   image: text("image"),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -73,7 +78,7 @@ export const userMissions = pgTable("user_missions", {
   userId: varchar("user_id").notNull().references(() => users.id),
   missionId: varchar("mission_id").notNull().references(() => missions.id),
   progress: integer("progress").default(0),
-  status: text("status").default("active"),
+  status: text("status").default("active"), // active, completed, locked
   completedAt: timestamp("completed_at"),
 });
 
@@ -127,6 +132,7 @@ export const tipsRelations = relations(tips, ({ one }) => ({
 }));
 
 // Insert schemas
+export const insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true });
 export const insertProductSchema = createInsertSchema(products).omit({ id: true, createdAt: true });
 export const insertTenderSchema = createInsertSchema(tenders).omit({ id: true, createdAt: true });
 export const insertSupplyNetworkSchema = createInsertSchema(supplyNetworks).omit({ id: true, createdAt: true });
@@ -135,6 +141,8 @@ export const insertUserMissionSchema = createInsertSchema(userMissions).omit({ i
 export const insertTipSchema = createInsertSchema(tips).omit({ id: true, createdAt: true });
 
 // Types
+export type InsertUser = z.infer<typeof insertUserSchema>;
+export type User = typeof users.$inferSelect;
 export type InsertProduct = z.infer<typeof insertProductSchema>;
 export type Product = typeof products.$inferSelect;
 export type InsertTender = z.infer<typeof insertTenderSchema>;

@@ -3,93 +3,29 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Camera, MapPin, TrendingUp, Info, Upload } from "lucide-react";
+import { Camera, MapPin, TrendingUp, Info } from "lucide-react";
 import { useLocation } from "wouter";
-import { useState, useRef } from "react";
+import { MARKET_RATES } from "@/lib/mockData";
+import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { useMutation } from "@tanstack/react-query";
-import { queryClient } from "@/lib/queryClient";
 
 export default function Post() {
   const { toast } = useToast();
   const [_, setLocation] = useLocation();
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [productName, setProductName] = useState("");
   
-  // Form state
-  const [formData, setFormData] = useState({
-    name: "",
-    price: "",
-    unit: "kg",
-    location: "Kathmandu",
-    description: "",
-    image: "",
-  });
-  const [imageName, setImageName] = useState("");
-
-  // Submit mutation
-  const { mutate: submitProduct, isPending } = useMutation({
-    mutationFn: async (data: typeof formData) => {
-      const res = await fetch("/api/products", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          ...data,
-          userId: "default", // Will be replaced by server with authenticated user
-        }),
-      });
-      if (!res.ok) throw new Error("Failed to post product");
-      return res.json();
-    },
-    onSuccess: () => {
-      // Invalidate products query to refetch
-      queryClient.invalidateQueries({ queryKey: ["/api/products"] });
-      
-      toast({
-        title: "Success!",
-        description: "Your product has been posted to the marketplace.",
-      });
-      setLocation("/");
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to post product",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setImageName(file.name);
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setFormData(prev => ({
-          ...prev,
-          image: event.target?.result as string, // Base64 encoded image
-        }));
-      };
-      reader.readAsDataURL(file);
-    }
-  };
+  // Mock logic to find market rate
+  const marketRate = Object.entries(MARKET_RATES).find(([key]) => 
+    key.toLowerCase().includes(productName.toLowerCase())
+  )?.[1];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name || !formData.price || !formData.location) {
-      toast({
-        title: "Error",
-        description: "Please fill in all required fields",
-        variant: "destructive",
-      });
-      return;
-    }
-    // Send without large image base64 - just send URL if available
-    submitProduct({
-      ...formData,
-      image: formData.image.substring(0, 100) || "", // Just send a reference, not full base64
+    toast({
+      title: "Success",
+      description: "Your product has been posted to the marketplace.",
     });
+    setLocation("/");
   };
 
   return (
@@ -98,90 +34,75 @@ export default function Post() {
       
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Image Upload Area */}
-        <input 
-          ref={fileInputRef}
-          type="file" 
-          accept="image/*" 
-          onChange={handleImageSelect}
-          className="hidden"
-          data-testid="input-image"
-        />
-        
-        <div 
-          onClick={() => fileInputRef.current?.click()}
-          className="border-2 border-dashed border-muted-foreground/30 rounded-2xl p-8 flex flex-col items-center justify-center gap-4 bg-muted/10 hover:bg-muted/20 transition-all cursor-pointer group"
-          data-testid="button-upload-image"
-        >
+        <div className="border-2 border-dashed border-muted-foreground/30 rounded-2xl p-8 flex flex-col items-center justify-center gap-4 bg-muted/10 hover:bg-muted/20 transition-all cursor-pointer group">
           <div className="bg-white p-4 rounded-full shadow-md group-hover:scale-110 transition-transform">
             <Camera className="w-8 h-8 text-primary" />
           </div>
           <div className="text-center">
-             <p className="text-sm font-bold text-foreground">
-               {imageName || "Tap to add photos"}
-             </p>
-             <p className="text-xs text-muted-foreground mt-1">
-               {imageName ? `Selected: ${imageName}` : "Showcase your harvest"}
-             </p>
+             <p className="text-sm font-bold text-foreground">Tap to add photos</p>
+             <p className="text-xs text-muted-foreground mt-1">Showcase your harvest</p>
           </div>
-          {formData.image && (
-            <div className="w-32 h-32 rounded-lg overflow-hidden mt-4 border-2 border-primary">
-              <img src={formData.image} alt="Preview" className="w-full h-full object-cover" />
-            </div>
-          )}
         </div>
 
         <div className="space-y-5">
           <div className="space-y-2">
-            <Label htmlFor="name" className="text-sm font-bold">Product Name *</Label>
+            <Label htmlFor="name" className="text-sm font-bold">Product Name</Label>
             <Input 
               id="name" 
               placeholder="e.g. Organic Red Tomatoes" 
               required 
               className="bg-white rounded-xl border-border/50 h-12"
-              value={formData.name}
-              onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-              data-testid="input-name"
+              value={productName}
+              onChange={(e) => setProductName(e.target.value)}
             />
+            
+            {/* Live Market Rate Card */}
+            {productName.length > 2 && (
+              <div className="mt-3 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-xl p-4 animate-in fade-in slide-in-from-top-2">
+                <div className="flex items-start gap-3">
+                   <div className="bg-blue-100 p-2 rounded-lg">
+                     <TrendingUp className="w-5 h-5 text-blue-600" />
+                   </div>
+                   <div className="flex-1">
+                     <h4 className="font-bold text-sm text-blue-900 mb-1">Market Insight</h4>
+                     {marketRate ? (
+                       <div className="text-sm">
+                         <span className="text-muted-foreground">Current rate in Kalimati:</span>
+                         <div className="font-bold text-lg text-blue-700 mt-1">
+                           Rs. {marketRate.min} - {marketRate.max} <span className="text-xs font-normal text-muted-foreground">/kg</span>
+                         </div>
+                         <p className="text-xs text-blue-600/80 mt-1 flex items-center gap-1">
+                           <Info className="w-3 h-3" /> 
+                           Trend is {marketRate.trend} today
+                         </p>
+                       </div>
+                     ) : (
+                       <p className="text-sm text-muted-foreground italic">
+                         Enter specific produce name to see rates...
+                       </p>
+                     )}
+                   </div>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="price" className="text-sm font-bold">Price (Rs.) *</Label>
-              <Input 
-                id="price" 
-                placeholder="00" 
-                required 
-                className="bg-white rounded-xl border-border/50 h-12"
-                value={formData.price}
-                onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))}
-                data-testid="input-price"
-              />
+              <Label htmlFor="price" className="text-sm font-bold">Price</Label>
+              <Input id="price" placeholder="Rs. 00" required className="bg-white rounded-xl border-border/50 h-12" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="unit" className="text-sm font-bold">Unit</Label>
-              <Input 
-                id="unit" 
-                placeholder="per kg" 
-                className="bg-white rounded-xl border-border/50 h-12"
-                value={formData.unit}
-                onChange={(e) => setFormData(prev => ({ ...prev, unit: e.target.value }))}
-                data-testid="input-unit"
-              />
+              <Input id="unit" placeholder="per kg" required className="bg-white rounded-xl border-border/50 h-12" />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="location" className="text-sm font-bold">Farm Location *</Label>
+            <Label htmlFor="location" className="text-sm font-bold">Farm Location</Label>
             <div className="relative">
               <MapPin className="absolute left-3 top-3.5 h-5 w-5 text-muted-foreground" />
-              <Input 
-                id="location" 
-                placeholder="Select location" 
-                className="pl-10 bg-white rounded-xl border-border/50 h-12"
-                value={formData.location}
-                onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
-                data-testid="input-location"
-              />
+              <Input id="location" placeholder="Select location" className="pl-10 bg-white rounded-xl border-border/50 h-12" />
             </div>
           </div>
 
@@ -191,21 +112,12 @@ export default function Post() {
               id="description" 
               placeholder="Tell buyers about your farming methods (e.g., Organic, Greenhouse)..." 
               className="bg-white min-h-[120px] rounded-xl border-border/50 resize-none p-4"
-              value={formData.description}
-              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-              data-testid="textarea-description"
             />
           </div>
         </div>
 
-        <Button 
-          type="submit" 
-          size="lg" 
-          className="w-full h-14 text-base font-bold shadow-xl shadow-primary/20 rounded-xl"
-          disabled={isPending}
-          data-testid="button-submit-post"
-        >
-          {isPending ? "Posting..." : "Post to Marketplace"}
+        <Button type="submit" size="lg" className="w-full h-14 text-base font-bold shadow-xl shadow-primary/20 rounded-xl">
+          Post to Marketplace
         </Button>
       </form>
     </div>

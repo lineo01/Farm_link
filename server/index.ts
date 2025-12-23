@@ -2,7 +2,6 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
-import { setupAuth, registerAuthRoutes } from "./replit_integrations/auth";
 
 const app = express();
 const httpServer = createServer(app);
@@ -15,7 +14,6 @@ declare module "http" {
 
 app.use(
   express.json({
-    limit: "50mb",
     verify: (req, _res, buf) => {
       req.rawBody = buf;
     },
@@ -62,11 +60,6 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  // Setup authentication first (IMPORTANT: Must be before other routes)
-  await setupAuth(app);
-  registerAuthRoutes(app);
-
-  // Register other routes
   await registerRoutes(httpServer, app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
