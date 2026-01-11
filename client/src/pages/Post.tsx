@@ -52,8 +52,8 @@ export default function Post() {
       
       if (imageFile) {
         const imageRef = ref(storage, `products/${Date.now()}_${imageFile.name}`);
-        await uploadBytes(imageRef, imageFile);
-        imageUrl = await getDownloadURL(imageRef);
+        const snapshot = await uploadBytes(imageRef, imageFile);
+        imageUrl = await getDownloadURL(snapshot.ref);
       }
 
       await addDoc(collection(db, "products"), {
@@ -77,10 +77,11 @@ export default function Post() {
       });
       setLocation("/");
     } catch (error) {
+      console.error("Posting failed:", error);
       toast({
         title: "Error",
         variant: "destructive",
-        description: "Failed to post product. Please try again.",
+        description: "Failed to post product. Please ensure your images are smaller than 5MB.",
       });
     } finally {
       setIsLoading(false);

@@ -16,6 +16,8 @@ import { MobileLayout } from "@/components/layout/MobileLayout";
 import { Button } from "@/components/ui/button";
 import { Sprout } from "lucide-react";
 
+import SetupAccount from "@/pages/SetupAccount";
+
 function Router() {
   const { user, isLoading, login } = useAuth();
 
@@ -52,6 +54,10 @@ function Router() {
         </div>
       </div>
     );
+  }
+
+  if (!user.isSetupComplete) {
+    return <SetupAccount />;
   }
 
   return (
