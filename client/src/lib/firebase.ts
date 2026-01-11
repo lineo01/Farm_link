@@ -1,28 +1,28 @@
-// NOTE: This is a placeholder for Firebase configuration.
-// To release this app with a real backend:
-// 1. Create a project in Firebase Console (https://console.firebase.google.com/)
-// 2. Enable Firestore Database and Authentication
-// 3. Copy your web app configuration keys here
-// 4. Install firebase SDK: npm install firebase
-
-/*
 import { initializeApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
+import { getAnalytics, isSupported } from "firebase/analytics";
 
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "your-app.firebaseapp.com",
-  projectId: "your-app-id",
-  storageBucket: "your-app.appspot.com",
-  messagingSenderId: "123456789",
-  appId: "1:123456789:web:abcdef"
+  apiKey: "AIzaSyAEi1jq2EF-3CS1qfxkMIGaN1YxmbHPI3c",
+  authDomain: "farm-link-da347.firebaseapp.com",
+  projectId: "farm-link-da347",
+  storageBucket: "farm-link-da347.firebasestorage.app",
+  messagingSenderId: "61798278746",
+  appId: "1:61798278746:web:0b005227e292c1a0ca5a63",
+  measurementId: "G-T7PPDMD3WZ"
 };
 
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app);
-export const auth = getAuth(app);
-*/
 
-export const db = null;
-export const auth = null;
+// Initialize services
+export const auth = getAuth(app);
+export const db = getFirestore(app);
+export const storage = getStorage(app);
+
+// Analytics is only supported in browser environments
+export const analytics = typeof window !== "undefined" ? isSupported().then(yes => yes ? getAnalytics(app) : null) : null;
+
+export default app;
