@@ -5,10 +5,12 @@ import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Heart, MessageCircle, ShoppingBag, TrendingUp, TrendingDown, Minus, HandCoins, ArrowRight } from "lucide-react";
-import { db } from "@/lib/firebase";
+import { db, auth } from "@/lib/firebase";
 import { collection, query, onSnapshot, orderBy } from "firebase/firestore";
+import { useAuth } from "@/hooks/use-auth";
 
 export default function Home() {
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState("All");
   const [showFilters, setShowFilters] = useState(false);
@@ -25,6 +27,10 @@ export default function Home() {
     });
     return () => unsubscribe();
   }, []);
+
+  // Use the logged in user's display name or a fallback
+  const currentUserName = user?.displayName || "Anonymous Farmer";
+  const currentUserPhoto = user?.photoURL || "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&q=80&w=200";
 
   // Filter based on state products instead of mock data
   const filteredProducts = products.filter(product => {

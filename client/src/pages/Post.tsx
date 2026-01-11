@@ -8,10 +8,13 @@ import { useLocation } from "wouter";
 import { MARKET_RATES } from "@/lib/mockData";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { db } from "@/lib/firebase";
+import { db, auth, storage } from "@/lib/firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { useAuth } from "@/hooks/use-auth";
 
 export default function Post() {
+  const { user } = useAuth();
   const { toast } = useToast();
   const [_, setLocation] = useLocation();
   const [productName, setProductName] = useState("");
@@ -20,28 +23,52 @@ export default function Post() {
   const [locationName, setLocationName] = useState("");
   const [description, setDescription] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   
   // Mock logic to find market rate
   const marketRate = Object.entries(MARKET_RATES).find(([key]) => 
     key.toLowerCase().includes(productName.toLowerCase())
   )?.[1];
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user) return;
     setIsLoading(true);
     try {
+      let imageUrl = "https://images.unsplash.com/photo-1566385278603-975bad627075?auto=format&fit=crop&q=80&w=800";
+      
+      if (imageFile) {
+        const imageRef = ref(storage, `products/${Date.now()}_${imageFile.name}`);
+        await uploadBytes(imageRef, imageFile);
+        imageUrl = await getDownloadURL(imageRef);
+      }
+
       await addDoc(collection(db, "products"), {
         name: productName,
         price: `Rs. ${price}`,
         unit,
         location: locationName,
         description,
-        farmer: "Ram Bahadur", // Default for now
-        farmerImage: "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&q=80&w=200",
-        image: "https://images.unsplash.com/photo-1566385278603-975bad627075?auto=format&fit=crop&q=80&w=800",
+        farmer: user.displayName || "Anonymous Farmer",
+        farmerImage: user.photoURL || "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&q=80&w=200",
+        image: imageUrl,
         postedTime: "Just now",
         likes: 0,
-        createdAt: serverTimestamp()
+        createdAt: serverTimestamp(),
+        userId: user.uid
       });
 
       toast({
@@ -65,16 +92,23 @@ export default function Post() {
       <h2 className="text-2xl md:text-3xl font-serif font-bold mb-6 text-foreground">Sell Produce</h2>
       
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* ... image upload ... */}
-        <div className="border-2 border-dashed border-muted-foreground/30 rounded-2xl p-8 flex flex-col items-center justify-center gap-4 bg-muted/10 hover:bg-muted/20 transition-all cursor-pointer group">
-          <div className="bg-white p-4 rounded-full shadow-md group-hover:scale-110 transition-transform">
-            <Camera className="w-8 h-8 text-primary" />
-          </div>
-          <div className="text-center">
-             <p className="text-sm font-bold text-foreground">Tap to add photos</p>
-             <p className="text-xs text-muted-foreground mt-1">Showcase your harvest</p>
-          </div>
-        </div>
+        {/* Image Upload Area */}
+        <label className="border-2 border-dashed border-muted-foreground/30 rounded-2xl p-8 flex flex-col items-center justify-center gap-4 bg-muted/10 hover:bg-muted/20 transition-all cursor-pointer group relative overflow-hidden h-64">
+          <input type="file" className="hidden" accept="image/*" onChange={handleImageChange} />
+          {imagePreview ? (
+            <img src={imagePreview} className="absolute inset-0 w-full h-full object-cover" />
+          ) : (
+            <>
+              <div className="bg-white p-4 rounded-full shadow-md group-hover:scale-110 transition-transform">
+                <Camera className="w-8 h-8 text-primary" />
+              </div>
+              <div className="text-center">
+                 <p className="text-sm font-bold text-foreground">Tap to add photos</p>
+                 <p className="text-xs text-muted-foreground mt-1">Showcase your harvest</p>
+              </div>
+            </>
+          )}
+        </label>
 
         <div className="space-y-5">
           <div className="space-y-2">
