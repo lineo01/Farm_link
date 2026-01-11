@@ -1,20 +1,35 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, Filter, MapPin, ChevronDown, SlidersHorizontal } from "lucide-react";
-import { PRODUCTS, MARKET_RATES } from "@/lib/mockData";
+import { MARKET_RATES } from "@/lib/mockData";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Heart, MessageCircle, ShoppingBag, TrendingUp, TrendingDown, Minus, HandCoins, ArrowRight } from "lucide-react";
+import { db } from "@/lib/firebase";
+import { collection, query, onSnapshot, orderBy } from "firebase/firestore";
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState("All");
   const [showFilters, setShowFilters] = useState(false);
+  const [products, setProducts] = useState<any[]>([]);
 
-  // Mock filtering
-  const filteredProducts = PRODUCTS.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          product.farmer.toLowerCase().includes(searchQuery.toLowerCase());
+  useEffect(() => {
+    const q = query(collection(db, "products"), orderBy("createdAt", "desc"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const productList = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setProducts(productList);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  // Filter based on state products instead of mock data
+  const filteredProducts = products.filter(product => {
+    const matchesSearch = product.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                          product.farmer?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesFilter = activeFilter === "All" || product.location === activeFilter;
     return matchesSearch && matchesFilter;
   });

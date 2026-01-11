@@ -1,13 +1,73 @@
-import { CHATS } from "@/lib/mockData";
-import { Search, Phone, Video, CreditCard, Send, ArrowRight } from "lucide-react";
+import { Search, Send } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
+import { db } from "@/lib/firebase";
+import { collection, query, onSnapshot, orderBy, addDoc, serverTimestamp } from "firebase/firestore";
 
 export default function Chat() {
-  const [activeChat, setActiveChat] = useState<number | null>(null);
+  const [activeChat, setActiveChat] = useState<string | null>(null);
+  const [messages, setMessages] = useState<any[]>([]);
+  const [chats, setChats] = useState<any[]>([]);
+  const [newMessage, setNewMessage] = useState("");
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Listen for all chats
+    const q = query(collection(db, "chats"), orderBy("lastUpdated", "desc"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const chatList = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setChats(chatList);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (!activeChat) return;
+
+    // Listen for messages in active chat
+    const q = query(
+      collection(db, "chats", activeChat, "messages"),
+      orderBy("createdAt", "asc")
+    );
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const msgList = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setMessages(msgList);
+      setTimeout(() => {
+        if (scrollRef.current) {
+          scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+        }
+      }, 100);
+    });
+    return () => unsubscribe();
+  }, [activeChat]);
+
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newMessage.trim() || !activeChat) return;
+
+    const msg = newMessage;
+    setNewMessage("");
+
+    try {
+      await addDoc(collection(db, "chats", activeChat, "messages"), {
+        text: msg,
+        sender: "Ram Bahadur", // Default for now
+        createdAt: serverTimestamp()
+      });
+    } catch (error) {
+      console.error("Error sending message:", error);
+    }
+  };
 
   if (activeChat) {
+    const chat = chats.find(c => c.id === activeChat);
     return (
       <div className="flex flex-col h-full bg-white">
         <div className="p-3 border-b border-border flex items-center justify-between sticky top-0 bg-white/80 backdrop-blur-md z-10">
@@ -16,63 +76,41 @@ export default function Chat() {
                ←
              </button>
              <div className="relative">
-                <img src={CHATS[0].avatar} className="w-8 h-8 rounded-full" />
+                <img src={chat?.avatar || "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=200"} className="w-8 h-8 rounded-full" />
                 <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-white rounded-full"></span>
              </div>
              <div>
-               <h3 className="font-bold text-sm">{CHATS[0].name}</h3>
+               <h3 className="font-bold text-sm">{chat?.name}</h3>
                <p className="text-[10px] text-green-600 font-medium">Online</p>
              </div>
            </div>
-           <div className="flex items-center gap-3 text-primary">
-             <Phone className="w-5 h-5" />
-             <Video className="w-5 h-5" />
-           </div>
         </div>
 
-        <div className="flex-1 p-4 space-y-4 overflow-y-auto bg-muted/10">
-           <div className="flex justify-center">
-             <span className="text-[10px] bg-muted text-muted-foreground px-2 py-1 rounded-full">Today</span>
-           </div>
-           
-           <div className="flex justify-end">
-             <div className="bg-primary text-white p-3 rounded-2xl rounded-tr-none max-w-[80%] text-sm shadow-sm">
-               Hi! Is the 50kg lot still available?
-             </div>
-           </div>
-
-           <div className="flex justify-start">
-             <div className="bg-white border border-border text-foreground p-3 rounded-2xl rounded-tl-none max-w-[80%] text-sm shadow-sm">
-               Yes, Ram! I can have the truck pick it up by 2 PM.
-             </div>
-           </div>
-
-           {/* Payment Request Bubble - SENT BY FARMER (Current User) */}
-           <div className="flex justify-end w-full">
-              <div className="bg-primary/5 border border-primary/20 p-3 rounded-2xl rounded-tr-none max-w-[85%] shadow-sm space-y-2">
-                 <div className="flex items-center gap-2 text-xs font-bold text-primary uppercase tracking-wider">
-                    <CreditCard className="w-3 h-3" /> Payment Request Sent
-                 </div>
-                 <div className="text-xl font-bold text-foreground">Rs. 15,000</div>
-                 <p className="text-xs text-muted-foreground">For 250kg Tomatoes</p>
-                 <div className="flex items-center gap-2 mt-2 pt-2 border-t border-primary/10">
-                    <span className="text-xs font-medium text-orange-600 bg-orange-100 px-2 py-0.5 rounded-full">Pending</span>
-                    <span className="text-[10px] text-muted-foreground ml-auto">Via eSewa</span>
-                 </div>
+        <div ref={scrollRef} className="flex-1 p-4 space-y-4 overflow-y-auto bg-muted/10">
+            <div key={msg.id} className={cn("flex", msg.sender === "Ram Bahadur" ? "justify-end" : "justify-start")}>
+              <div className={cn(
+                "p-3 rounded-2xl max-w-[80%] text-sm shadow-sm",
+                msg.sender === "Ram Bahadur" 
+                  ? "bg-primary text-white rounded-tr-none" 
+                  : "bg-white border border-border text-foreground rounded-tl-none"
+              )}>
+                {msg.text}
               </div>
-           </div>
+            </div>
+          ))}
         </div>
 
-        <div className="p-3 border-t border-border bg-white flex items-center gap-2">
-           <button className="p-2 text-primary bg-primary/10 hover:bg-primary/20 rounded-full transition-colors group relative">
-             <CreditCard className="w-5 h-5" />
-             <span className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-black text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 whitespace-nowrap pointer-events-none transition-opacity">Request Payment</span>
-           </button>
-           <Input placeholder="Type a message..." className="rounded-full bg-muted/30 border-none" />
-           <button className="p-2 bg-primary text-white rounded-full hover:bg-primary/90 transition-colors shadow-sm">
+        <form onSubmit={handleSendMessage} className="p-3 border-t border-border bg-white flex items-center gap-2">
+           <Input 
+             placeholder="Type a message..." 
+             className="rounded-full bg-muted/30 border-none" 
+             value={newMessage}
+             onChange={(e) => setNewMessage(e.target.value)}
+           />
+           <button type="submit" className="p-2 bg-primary text-white rounded-full hover:bg-primary/90 transition-colors shadow-sm">
              <Send className="w-4 h-4" />
            </button>
-        </div>
+        </form>
       </div>
     );
   }
@@ -88,7 +126,7 @@ export default function Chat() {
       </div>
 
       <div className="flex-1 overflow-y-auto">
-        {CHATS.map((chat) => (
+        {chats.map((chat) => (
           <div 
             key={chat.id}
             onClick={() => setActiveChat(chat.id)}
@@ -100,17 +138,11 @@ export default function Chat() {
                 alt={chat.name} 
                 className="w-12 h-12 rounded-full object-cover"
               />
-              {chat.unread > 0 && (
-                <span className="absolute -top-1 -right-1 bg-primary text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full border-2 border-white">
-                  {chat.unread}
-                </span>
-              )}
             </div>
             
             <div className="flex-1 min-w-0">
               <div className="flex justify-between items-baseline mb-1">
                 <h3 className="font-semibold text-sm truncate">{chat.name}</h3>
-                <span className="text-xs text-muted-foreground whitespace-nowrap ml-2">{chat.time}</span>
               </div>
               <p className="text-sm text-muted-foreground truncate font-medium">{chat.lastMessage}</p>
             </div>
