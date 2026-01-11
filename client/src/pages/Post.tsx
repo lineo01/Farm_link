@@ -29,8 +29,8 @@ export default function Post() {
   };
 
   return (
-    <div className="p-4 pb-20">
-      <h2 className="text-2xl font-serif font-bold mb-6 text-foreground">Sell Produce</h2>
+    <div className="p-4 md:p-8 pb-20 max-w-2xl mx-auto">
+      <h2 className="text-2xl md:text-3xl font-serif font-bold mb-6 text-foreground">Sell Produce</h2>
       
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Image Upload Area */}

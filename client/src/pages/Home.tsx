@@ -78,7 +78,7 @@ export default function Home() {
       </div>
 
       {/* Product List */}
-      <div className="space-y-6 pt-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 pt-4 px-4 md:px-0">
         {filteredProducts.map((product, index) => {
           const marketRate = MARKET_RATES[product.name as keyof typeof MARKET_RATES];
           const isGoodPrice = marketRate && parseInt(product.price.split(' ')[1]) <= marketRate.max;
