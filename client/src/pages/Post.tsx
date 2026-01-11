@@ -110,9 +110,20 @@ export default function Post() {
           )}
         </label>
 
-        <div className="space-y-5">
-          <div className="space-y-2">
-            <Label htmlFor="name" className="text-sm font-bold">Product Name</Label>
+          <div className="space-y-5">
+            <div className="space-y-2">
+              <Label htmlFor="farmer" className="text-sm font-bold">Farmer Name</Label>
+              <Input 
+                id="farmer" 
+                placeholder="Your Name" 
+                required 
+                className="bg-white rounded-xl border-border/50 h-12"
+                value={user?.displayName || ""}
+                readOnly
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="name" className="text-sm font-bold">Product Name</Label>
             <Input 
               id="name" 
               placeholder="e.g. Organic Red Tomatoes" 
