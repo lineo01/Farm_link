@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { db } from "@/lib/firebase";
 import { collection, query, onSnapshot, orderBy, addDoc, serverTimestamp } from "firebase/firestore";
+import { cn } from "@/lib/utils";
 
 export default function Chat() {
   const [activeChat, setActiveChat] = useState<string | null>(null);
@@ -87,6 +88,7 @@ export default function Chat() {
         </div>
 
         <div ref={scrollRef} className="flex-1 p-4 space-y-4 overflow-y-auto bg-muted/10">
+          {messages.map((msg) => (
             <div key={msg.id} className={cn("flex", msg.sender === "Ram Bahadur" ? "justify-end" : "justify-start")}>
               <div className={cn(
                 "p-3 rounded-2xl max-w-[80%] text-sm shadow-sm",
