@@ -18,37 +18,45 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        // Get user data from Firestore to check setup status
-        const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
-        const userData = userDoc.data();
-        
-        setUser({
-          ...firebaseUser,
-          displayName: userData?.displayName || firebaseUser.displayName,
-          photoURL: userData?.photoURL || firebaseUser.photoURL,
-          isSetupComplete: userData?.isSetupComplete || false
-        } as any);
+      try {
+        if (firebaseUser) {
+          // Get user data from Firestore to check setup status
+          const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
+          const userData = userDoc.data();
+          
+          setUser({
+            ...firebaseUser,
+            displayName: userData?.displayName || firebaseUser.displayName,
+            photoURL: userData?.photoURL || firebaseUser.photoURL,
+            isSetupComplete: userData?.isSetupComplete || false
+          } as any);
 
-        if (!userData) {
+          // Update user presence/data
           await setDoc(doc(db, "users", firebaseUser.uid), {
-            displayName: firebaseUser.displayName,
-            photoURL: firebaseUser.photoURL,
+            displayName: userData?.displayName || firebaseUser.displayName,
+            photoURL: userData?.photoURL || firebaseUser.photoURL,
             email: firebaseUser.email,
             lastActive: serverTimestamp(),
             isOnline: true,
-            isSetupComplete: false
+            isSetupComplete: userData?.isSetupComplete || false
           }, { merge: true });
         } else {
-          await setDoc(doc(db, "users", firebaseUser.uid), {
-            isOnline: true,
-            lastActive: serverTimestamp()
-          }, { merge: true });
+          setUser(null);
         }
-      } else {
-        setUser(null);
+      } catch (error) {
+        console.error("Auth state change error:", error);
+        // Fallback for offline or restricted access
+        if (firebaseUser) {
+          setUser({
+            ...firebaseUser,
+            isSetupComplete: false // Assume incomplete if we can't check
+          } as any);
+        } else {
+          setUser(null);
+        }
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     });
     return () => unsubscribe();
   }, []);
