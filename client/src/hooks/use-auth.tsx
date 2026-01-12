@@ -20,6 +20,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       try {
         if (firebaseUser) {
+          console.log("Auth State Changed: User Logged In", firebaseUser.uid);
           const userDocRef = doc(db, "users", firebaseUser.uid);
           
           // Non-blocking update of presence
@@ -30,7 +31,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             isOnline: true,
           }, { merge: true }).catch(err => console.error("Presence update failed:", err));
 
-          // Force a network fetch to get the most recent data
           const userDoc = await getDoc(userDocRef);
           const userData = userDoc.exists() ? userDoc.data() : null;
           
@@ -41,6 +41,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             isSetupComplete: userData?.isSetupComplete || false
           } as any);
         } else {
+          console.log("Auth State Changed: No User");
           setUser(null);
         }
       } catch (error) {
@@ -55,9 +56,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async () => {
     try {
-      await signInWithPopup(auth, googleProvider);
-    } catch (error) {
+      console.log("Starting Google Login...");
+      const result = await signInWithPopup(auth, googleProvider);
+      console.log("Login successful:", result.user.email);
+    } catch (error: any) {
       console.error("Login failed:", error);
+      alert(`Login failed: ${error.message}`);
     }
   };
 
