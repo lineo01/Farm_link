@@ -20,35 +20,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let unsubscribe: (() => void) | undefined;
     
     const initAuth = async () => {
-      try {
-        await enableNetwork(db);
-      } catch (e) {
-        console.error("Failed to enable network", e);
-      }
+      // Set loading true initially
+      setIsLoading(true);
 
       unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
         try {
           if (firebaseUser) {
-            // Update user presence/data immediately to establish "online" status
-            try {
-              await setDoc(doc(db, "users", firebaseUser.uid), {
-                uid: firebaseUser.uid,
-                email: firebaseUser.email,
-                lastActive: serverTimestamp(),
-                isOnline: true,
-              }, { merge: true });
-            } catch (e) {
-              console.error("Failed to set online status", e);
-            }
+            // Non-blocking status update
+            setDoc(doc(db, "users", firebaseUser.uid), {
+              uid: firebaseUser.uid,
+              email: firebaseUser.email,
+              lastActive: serverTimestamp(),
+              isOnline: true,
+            }, { merge: true }).catch(e => console.error("Presence error", e));
 
-            // Get user data from Firestore to check setup status
-            let userData;
-            try {
-              const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
-              userData = userDoc.data();
-            } catch (e) {
-              console.error("Failed to get user data", e);
-            }
+            // Fetch user profile with local cache fallback
+            const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
+            const userData = userDoc.data();
             
             setUser({
               ...firebaseUser,
@@ -61,6 +49,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
         } catch (error) {
           console.error("Auth state change error:", error);
+          // Fallback user state
+          if (firebaseUser) {
+            setUser(firebaseUser as any);
+          }
         } finally {
           setIsLoading(false);
         }
