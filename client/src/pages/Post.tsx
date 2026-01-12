@@ -51,9 +51,14 @@ export default function Post() {
       let imageUrl = "https://images.unsplash.com/photo-1566385278603-975bad627075?auto=format&fit=crop&q=80&w=800";
       
       if (imageFile) {
-        const imageRef = ref(storage, `products/${Date.now()}_${imageFile.name}`);
-        const snapshot = await uploadBytes(imageRef, imageFile);
-        imageUrl = await getDownloadURL(snapshot.ref);
+        try {
+          const imageRef = ref(storage, `products/${Date.now()}_${imageFile.name}`);
+          const snapshot = await uploadBytes(imageRef, imageFile);
+          imageUrl = await getDownloadURL(snapshot.ref);
+        } catch (uploadError) {
+          console.error("Image upload failed, using default:", uploadError);
+          // Fallback to default if upload fails (e.g. storage rules or network)
+        }
       }
 
       await addDoc(collection(db, "products"), {
@@ -62,7 +67,7 @@ export default function Post() {
         unit,
         location: locationName,
         description,
-        farmer: user.displayName || "Anonymous Farmer",
+        farmer: user.displayName || "Farmer",
         farmerImage: user.photoURL || "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&q=80&w=200",
         image: imageUrl,
         postedTime: "Just now",
@@ -81,7 +86,7 @@ export default function Post() {
       toast({
         title: "Error",
         variant: "destructive",
-        description: "Failed to post product. Please ensure your images are smaller than 5MB.",
+        description: "Failed to post product. Please try again.",
       });
     } finally {
       setIsLoading(false);
