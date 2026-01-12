@@ -23,14 +23,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           console.log("Auth State Changed: User Logged In", firebaseUser.uid);
           const userDocRef = doc(db, "users", firebaseUser.uid);
           
-          // Non-blocking update of presence
-          setDoc(userDocRef, {
+          // Use a simpler setDoc without serverTimestamp initially to ensure it completes
+          await setDoc(userDocRef, {
             uid: firebaseUser.uid,
             email: firebaseUser.email,
-            lastActive: serverTimestamp(),
             isOnline: true,
-          }, { merge: true }).catch(err => console.error("Presence update failed:", err));
+          }, { merge: true });
 
+          // Attempt to get user data
           const userDoc = await getDoc(userDocRef);
           const userData = userDoc.exists() ? userDoc.data() : null;
           
@@ -40,13 +40,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             photoURL: userData?.photoURL || firebaseUser.photoURL,
             isSetupComplete: userData?.isSetupComplete || false
           } as any);
+
+          // Update lastActive separately to avoid blocking the UI
+          setDoc(userDocRef, {
+            lastActive: serverTimestamp(),
+          }, { merge: true }).catch(err => console.error("Last active update failed:", err));
+
         } else {
           console.log("Auth State Changed: No User");
           setUser(null);
         }
       } catch (error) {
         console.error("Auth sync error:", error);
-        if (firebaseUser) setUser(firebaseUser as any);
+        // CRITICAL: Set the user even if Firestore fails so they aren't stuck on the login screen
+        if (firebaseUser) {
+          setUser(firebaseUser as any);
+        } else {
+          setUser(null);
+        }
       } finally {
         setIsLoading(false);
       }
