@@ -6,8 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Settings, MapPin, Phone, Star, Package, TrendingUp, TrendingDown, Wallet, FileText, Users, Building2, ChevronRight, Plus } from "lucide-react";
 import { BALANCE_SHEET } from "@/lib/mockData";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/use-auth";
 
 export default function Profile() {
+  const { user } = useAuth();
   const SUPPLY_NETWORK = [
     { id: 1, name: "Bhat Bhateni", type: "Retail", status: "Active", image: supermarketImage },
     { id: 2, name: "Hotel Annapurna", type: "Hospitality", status: "Active", image: hotelImage },
@@ -31,15 +33,15 @@ export default function Profile() {
         <div className="relative -mt-12 mb-6 text-center">
           <div className="inline-block p-1 bg-white rounded-full shadow-md">
             <img 
-              src={farmerImage} 
-              alt="Ram Bahadur" 
+              src={user?.photoURL || farmerImage} 
+              alt={user?.displayName || "Farmer"} 
               className="w-24 h-24 rounded-full object-cover"
             />
           </div>
-          <h2 className="text-xl font-serif font-bold mt-2">Ram Bahadur</h2>
+          <h2 className="text-xl font-serif font-bold mt-2">{user?.displayName || "Farmer"}</h2>
           <div className="flex items-center justify-center gap-1 text-muted-foreground text-sm">
             <MapPin className="w-3 h-3" />
-            <span>Panchkhal, Kavre</span>
+            <span>{user?.isSetupComplete ? "Verified Location" : "Panchkhal, Kavre"}</span>
           </div>
         </div>
 

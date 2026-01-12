@@ -29,7 +29,7 @@ export default function Home() {
   }, []);
 
   // Use the logged in user's display name or a fallback
-  const currentUserName = user?.displayName || "Anonymous Farmer";
+  const currentUserName = user?.displayName || "Farmer";
   const currentUserPhoto = user?.photoURL || "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&q=80&w=200";
 
   // Filter based on state products instead of mock data

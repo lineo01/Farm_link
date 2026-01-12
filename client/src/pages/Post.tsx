@@ -119,7 +119,7 @@ export default function Post() {
                 placeholder="Your Name" 
                 required 
                 className="bg-white rounded-xl border-border/50 h-12"
-                value={user?.displayName || ""}
+                value={user?.displayName || "Farmer"}
                 readOnly
               />
             </div>

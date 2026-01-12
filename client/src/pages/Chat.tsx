@@ -76,7 +76,7 @@ export default function Chat() {
     try {
       await addDoc(collection(db, "chats", activeChat, "messages"), {
         text: msg,
-        sender: user.displayName || "Anonymous",
+        sender: user.displayName || "Farmer",
         senderId: user.uid,
         createdAt: serverTimestamp()
       });
