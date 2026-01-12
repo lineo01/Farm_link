@@ -17,54 +17,60 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Try to ensure network is enabled
-    enableNetwork(db).catch(console.error);
-
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+    let unsubscribe: (() => void) | undefined;
+    
+    const initAuth = async () => {
       try {
-        if (firebaseUser) {
-          // Update user presence/data immediately to establish "online" status
-          await setDoc(doc(db, "users", firebaseUser.uid), {
-            uid: firebaseUser.uid,
-            email: firebaseUser.email,
-            lastActive: serverTimestamp(),
-            isOnline: true,
-          }, { merge: true });
-
-          // Get user data from Firestore to check setup status
-          const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
-          const userData = userDoc.data();
-          
-          setUser({
-            ...firebaseUser,
-            displayName: userData?.displayName || firebaseUser.displayName,
-            photoURL: userData?.photoURL || firebaseUser.photoURL,
-            isSetupComplete: userData?.isSetupComplete || false
-          } as any);
-
-          if (userData) {
-             await setDoc(doc(db, "users", firebaseUser.uid), {
-              isSetupComplete: userData.isSetupComplete || false
-            }, { merge: true });
-          }
-        } else {
-          setUser(null);
-        }
-      } catch (error) {
-        console.error("Auth state change error:", error);
-        if (firebaseUser) {
-          setUser({
-            ...firebaseUser,
-            isSetupComplete: false
-          } as any);
-        } else {
-          setUser(null);
-        }
-      } finally {
-        setIsLoading(false);
+        await enableNetwork(db);
+      } catch (e) {
+        console.error("Failed to enable network", e);
       }
-    });
-    return () => unsubscribe();
+
+      unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+        try {
+          if (firebaseUser) {
+            // Update user presence/data immediately to establish "online" status
+            try {
+              await setDoc(doc(db, "users", firebaseUser.uid), {
+                uid: firebaseUser.uid,
+                email: firebaseUser.email,
+                lastActive: serverTimestamp(),
+                isOnline: true,
+              }, { merge: true });
+            } catch (e) {
+              console.error("Failed to set online status", e);
+            }
+
+            // Get user data from Firestore to check setup status
+            let userData;
+            try {
+              const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
+              userData = userDoc.data();
+            } catch (e) {
+              console.error("Failed to get user data", e);
+            }
+            
+            setUser({
+              ...firebaseUser,
+              displayName: userData?.displayName || firebaseUser.displayName,
+              photoURL: userData?.photoURL || firebaseUser.photoURL,
+              isSetupComplete: userData?.isSetupComplete || false
+            } as any);
+          } else {
+            setUser(null);
+          }
+        } catch (error) {
+          console.error("Auth state change error:", error);
+        } finally {
+          setIsLoading(false);
+        }
+      });
+    };
+
+    initAuth();
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
   }, []);
 
   const login = async () => {
