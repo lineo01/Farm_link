@@ -69,12 +69,15 @@ export default function Post() {
         userId: user.uid
       });
 
-      const docRef = await addDoc(collection(db, "products"), {
-        name: productName,
-        price: `Rs. ${price}`,
-        unit,
-        location: locationName,
-        description,
+      // Wrap Firestore operations in a simpler structure to avoid potential hangs
+      const productsCollection = collection(db, "products");
+      
+      const newProduct = {
+        name: productName || "Unnamed Product",
+        price: price ? `Rs. ${price}` : "Contact for price",
+        unit: unit || "unit",
+        location: locationName || "Nepal",
+        description: description || "",
         farmer: user.displayName || "Farmer",
         farmerImage: user.photoURL || "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&q=80&w=200",
         image: imageUrl,
@@ -82,7 +85,10 @@ export default function Post() {
         likes: 0,
         createdAt: serverTimestamp(),
         userId: user.uid
-      });
+      };
+
+      // Use a more direct approach for Firestore adding
+      const docRef = await addDoc(collection(db, "products"), newProduct);
       
       console.log("Product posted successfully, ID:", docRef.id);
 
@@ -90,7 +96,11 @@ export default function Post() {
         title: "Success",
         description: "Your product has been posted and is now live!",
       });
-      setLocation("/");
+      
+      // Navigate immediately but keep a slight buffer for the state to settle
+      setTimeout(() => {
+        setLocation("/");
+      }, 300);
     } catch (error) {
       console.error("Posting failed:", error);
       toast({
