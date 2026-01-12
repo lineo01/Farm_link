@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { auth, googleProvider, signInWithPopup, onAuthStateChanged, signOut, db } from "@/lib/firebase";
 import { User } from "firebase/auth";
-import { doc, setDoc, getDoc, serverTimestamp, enableNetwork, disableNetwork } from "firebase/firestore";
+import { doc, setDoc, getDoc, serverTimestamp, initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from "firebase/firestore";
 
 interface AuthContextType {
   user: (User & { isSetupComplete?: boolean }) | null;
@@ -17,57 +17,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    let unsubscribe: (() => void) | undefined;
-    
-    const initAuth = async () => {
-      // Set loading true initially
-      setIsLoading(true);
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      try {
+        if (firebaseUser) {
+          // Attempt to get user data from Firestore with a timeout/fallback
+          const userDocRef = doc(db, "users", firebaseUser.uid);
+          
+          // Non-blocking update of presence
+          setDoc(userDocRef, {
+            uid: firebaseUser.uid,
+            email: firebaseUser.email,
+            lastActive: serverTimestamp(),
+            isOnline: true,
+          }, { merge: true }).catch(err => console.error("Presence update failed:", err));
 
-      unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-        try {
-          if (firebaseUser) {
-            // Non-blocking status update
-            setDoc(doc(db, "users", firebaseUser.uid), {
-              uid: firebaseUser.uid,
-              email: firebaseUser.email,
-              lastActive: serverTimestamp(),
-              isOnline: true,
-            }, { merge: true }).catch(e => console.error("Presence error", e));
-
-            // Fetch user profile with local cache fallback
-            const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
-            const userData = userDoc.data();
-            
-            setUser({
-              ...firebaseUser,
-              displayName: userData?.displayName || firebaseUser.displayName,
-              photoURL: userData?.photoURL || firebaseUser.photoURL,
-              isSetupComplete: userData?.isSetupComplete || false
-            } as any);
-          } else {
-            setUser(null);
-          }
-        } catch (error) {
-          console.error("Auth state change error:", error);
-          // Fallback user state
-          if (firebaseUser) {
-            setUser(firebaseUser as any);
-          }
-        } finally {
-          setIsLoading(false);
+          const userDoc = await getDoc(userDocRef).catch(() => null);
+          const userData = userDoc?.exists() ? userDoc.data() : null;
+          
+          setUser({
+            ...firebaseUser,
+            displayName: userData?.displayName || firebaseUser.displayName,
+            photoURL: userData?.photoURL || firebaseUser.photoURL,
+            isSetupComplete: userData?.isSetupComplete || false
+          } as any);
+        } else {
+          setUser(null);
         }
-      });
-    };
-
-    initAuth();
-    return () => {
-      if (unsubscribe) unsubscribe();
-    };
+      } catch (error) {
+        console.error("Auth sync error:", error);
+        if (firebaseUser) setUser(firebaseUser as any);
+      } finally {
+        setIsLoading(false);
+      }
+    });
+    return () => unsubscribe();
   }, []);
 
   const login = async () => {
     try {
-      await enableNetwork(db);
       await signInWithPopup(auth, googleProvider);
     } catch (error) {
       console.error("Login failed:", error);
@@ -80,11 +67,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await setDoc(doc(db, "users", user.uid), {
           isOnline: false,
           lastActive: serverTimestamp()
-        }, { merge: true });
+        }, { merge: true }).catch(() => {});
       }
       await signOut(auth);
     } catch (error) {
-      console.error("Logout error:", error);
+      console.error("Logout failed:", error);
     }
   };
 
