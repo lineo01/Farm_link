@@ -33,12 +33,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             
             if (userDoc.exists()) {
               const userData = userDoc.data();
-              setUser({
-                ...firebaseUser,
-                displayName: userData.displayName || firebaseUser.displayName,
-                photoURL: userData.photoURL || firebaseUser.photoURL,
+              setUser(prev => prev ? ({
+                ...prev,
+                displayName: userData.displayName || prev.displayName,
+                photoURL: userData.photoURL || prev.photoURL,
                 isSetupComplete: userData.isSetupComplete || false
-              } as any);
+              }) : null as any);
             }
 
             // Non-blocking presence update
@@ -50,6 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             }, { merge: true }).catch(err => console.warn("Status update delayed", err));
           } catch (error) {
             console.warn("Profile sync error (likely offline):", error);
+            // Don't set isLoading(false) here, it was already set
           }
         };
 

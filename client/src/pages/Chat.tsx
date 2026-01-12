@@ -74,14 +74,21 @@ export default function Chat() {
     setNewMessage("");
 
     try {
-      await addDoc(collection(db, "chats", activeChat, "messages"), {
+      const messageData = {
         text: msg,
         sender: user.displayName || "Farmer",
         senderId: user.uid,
         createdAt: serverTimestamp()
-      });
+      };
+
+      if (activeChat === "main_community_chat") {
+        await addDoc(collection(db, "chats", "main_community_chat", "messages"), messageData);
+      } else {
+        await addDoc(collection(db, "chats", activeChat, "messages"), messageData);
+      }
     } catch (error) {
       console.error("Error sending message:", error);
+      alert("Failed to send message. Please check your internet connection.");
     }
   };
 
