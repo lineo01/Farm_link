@@ -17,48 +17,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      try {
-        if (firebaseUser) {
-          console.log("Auth State Changed: User Logged In", firebaseUser.uid);
-          const userDocRef = doc(db, "users", firebaseUser.uid);
-          
-          // Use a simpler setDoc without serverTimestamp initially to ensure it completes
-          await setDoc(userDocRef, {
-            uid: firebaseUser.uid,
-            email: firebaseUser.email,
-            isOnline: true,
-          }, { merge: true });
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      if (firebaseUser) {
+        console.log("Auth State Changed: User Logged In", firebaseUser.uid);
+        
+        // Non-blocking Firestore sync
+        const syncUser = async () => {
+          try {
+            const userDocRef = doc(db, "users", firebaseUser.uid);
+            const userDoc = await getDoc(userDocRef);
+            const userData = userDoc.exists() ? userDoc.data() : null;
+            
+            setUser({
+              ...firebaseUser,
+              displayName: userData?.displayName || firebaseUser.displayName,
+              photoURL: userData?.photoURL || firebaseUser.photoURL,
+              isSetupComplete: userData?.isSetupComplete || false
+            } as any);
 
-          // Attempt to get user data
-          const userDoc = await getDoc(userDocRef);
-          const userData = userDoc.exists() ? userDoc.data() : null;
-          
-          setUser({
-            ...firebaseUser,
-            displayName: userData?.displayName || firebaseUser.displayName,
-            photoURL: userData?.photoURL || firebaseUser.photoURL,
-            isSetupComplete: userData?.isSetupComplete || false
-          } as any);
+            // Update presence in background
+            setDoc(userDocRef, {
+              uid: firebaseUser.uid,
+              email: firebaseUser.email,
+              isOnline: true,
+              lastActive: serverTimestamp()
+            }, { merge: true }).catch(err => console.error("Presence sync failed", err));
+          } catch (error) {
+            console.error("Firestore sync error:", error);
+            setUser(firebaseUser as any);
+          } finally {
+            setIsLoading(false);
+          }
+        };
 
-          // Update lastActive separately to avoid blocking the UI
-          setDoc(userDocRef, {
-            lastActive: serverTimestamp(),
-          }, { merge: true }).catch(err => console.error("Last active update failed:", err));
-
-        } else {
-          console.log("Auth State Changed: No User");
-          setUser(null);
-        }
-      } catch (error) {
-        console.error("Auth sync error:", error);
-        // CRITICAL: Set the user even if Firestore fails so they aren't stuck on the login screen
-        if (firebaseUser) {
-          setUser(firebaseUser as any);
-        } else {
-          setUser(null);
-        }
-      } finally {
+        syncUser();
+      } else {
+        console.log("Auth State Changed: No User");
+        setUser(null);
         setIsLoading(false);
       }
     });
