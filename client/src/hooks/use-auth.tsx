@@ -17,46 +17,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      console.log("Auth State Changed:", firebaseUser ? "User Logged In" : "No User");
+      
       if (firebaseUser) {
-        console.log("Auth State Changed: User Logged In", firebaseUser.uid);
-        
-        // Immediately set user to unblock the UI
+        // Step 1: Immediately set the basic user object to unlock the UI
         setUser(firebaseUser as any);
         setIsLoading(false);
 
-        // Background sync with Firestore
-        const syncUser = async () => {
-          try {
-            const userDocRef = doc(db, "users", firebaseUser.uid);
-            const userDoc = await getDoc(userDocRef);
-            
-            if (userDoc.exists()) {
-              const userData = userDoc.data();
-              setUser(prev => prev ? ({
-                ...prev,
-                displayName: userData.displayName || prev.displayName,
-                photoURL: userData.photoURL || prev.photoURL,
-                isSetupComplete: userData.isSetupComplete || false
-              }) : null as any);
-            }
-
-            // Non-blocking presence update
-            setDoc(userDocRef, {
-              uid: firebaseUser.uid,
-              email: firebaseUser.email,
-              isOnline: true,
-              lastActive: serverTimestamp()
-            }, { merge: true }).catch(err => console.warn("Status update delayed", err));
-          } catch (error) {
-            console.warn("Profile sync error (likely offline):", error);
-            // Don't set isLoading(false) here, it was already set
+        // Step 2: Try to get profile data from Firestore
+        try {
+          const userDocRef = doc(db, "users", firebaseUser.uid);
+          const userDoc = await getDoc(userDocRef);
+          
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            setUser(prev => prev ? ({
+              ...prev,
+              displayName: userData.displayName || prev.displayName,
+              photoURL: userData.photoURL || prev.photoURL,
+              isSetupComplete: userData.isSetupComplete || false
+            }) : null as any);
           }
-        };
 
-        syncUser();
+          // Step 3: Update online status (don't wait for it)
+          setDoc(userDocRef, {
+            uid: firebaseUser.uid,
+            email: firebaseUser.email,
+            isOnline: true,
+            lastActive: serverTimestamp()
+          }, { merge: true }).catch(err => console.warn("Status update failed", err));
+
+        } catch (error) {
+          console.error("Firestore sync error:", error);
+          // UI is already unlocked by Step 1, so the user can still use the app
+        }
       } else {
-        console.log("Auth State Changed: No User");
         setUser(null);
         setIsLoading(false);
       }
@@ -69,6 +65,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.log("Starting Google Login...");
       const result = await signInWithPopup(auth, googleProvider);
       console.log("Login successful:", result.user.email);
+      
+      // Step: Ensure user document exists in Firestore
+      const userDocRef = doc(db, "users", result.user.uid);
+      const userDoc = await getDoc(userDocRef);
+      if (!userDoc.exists()) {
+        await setDoc(userDocRef, {
+          uid: result.user.uid,
+          email: result.user.email,
+          displayName: result.user.displayName,
+          photoURL: result.user.photoURL,
+          isOnline: true,
+          isSetupComplete: false,
+          lastActive: serverTimestamp()
+        });
+      }
     } catch (error: any) {
       console.error("Login failed:", error);
       alert(`Login failed: ${error.message}`);
