@@ -17,13 +17,17 @@ export default function Home() {
   const [products, setProducts] = useState<any[]>([]);
 
   useEffect(() => {
+    console.log("Subscribing to products...");
     const q = query(collection(db, "products"), orderBy("createdAt", "desc"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const productList = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       }));
+      console.log("Products updated:", productList.length);
       setProducts(productList);
+    }, (error) => {
+      console.error("Product subscription error:", error);
     });
     return () => unsubscribe();
   }, []);

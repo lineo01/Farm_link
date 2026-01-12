@@ -52,6 +52,7 @@ export default function Chat() {
       orderBy("createdAt", "asc")
     );
     const unsubscribe = onSnapshot(q, (snapshot) => {
+      console.log(`Received ${snapshot.size} messages for ${activeChat}`);
       const msgList = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
@@ -62,6 +63,8 @@ export default function Chat() {
           scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
         }
       }, 100);
+    }, (error) => {
+      console.error("Chat subscription error:", error);
     });
     return () => unsubscribe();
   }, [activeChat]);
