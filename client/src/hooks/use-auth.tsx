@@ -20,7 +20,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       try {
         if (firebaseUser) {
-          // Attempt to get user data from Firestore with a timeout/fallback
           const userDocRef = doc(db, "users", firebaseUser.uid);
           
           // Non-blocking update of presence
@@ -31,8 +30,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             isOnline: true,
           }, { merge: true }).catch(err => console.error("Presence update failed:", err));
 
-          const userDoc = await getDoc(userDocRef).catch(() => null);
-          const userData = userDoc?.exists() ? userDoc.data() : null;
+          // Force a network fetch to get the most recent data
+          const userDoc = await getDoc(userDocRef);
+          const userData = userDoc.exists() ? userDoc.data() : null;
           
           setUser({
             ...firebaseUser,
