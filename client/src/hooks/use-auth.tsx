@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { auth, googleProvider, signInWithPopup, onAuthStateChanged, signOut, db } from "@/lib/firebase";
 import { User } from "firebase/auth";
-import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
+import { doc, setDoc, getDoc, serverTimestamp, enableNetwork, disableNetwork } from "firebase/firestore";
 
 interface AuthContextType {
   user: (User & { isSetupComplete?: boolean }) | null;
@@ -17,9 +17,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    // Try to ensure network is enabled
+    enableNetwork(db).catch(console.error);
+
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       try {
         if (firebaseUser) {
+          // Update user presence/data immediately to establish "online" status
+          await setDoc(doc(db, "users", firebaseUser.uid), {
+            uid: firebaseUser.uid,
+            email: firebaseUser.email,
+            lastActive: serverTimestamp(),
+            isOnline: true,
+          }, { merge: true });
+
           // Get user data from Firestore to check setup status
           const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
           const userData = userDoc.data();
@@ -31,25 +42,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             isSetupComplete: userData?.isSetupComplete || false
           } as any);
 
-          // Update user presence/data
-          await setDoc(doc(db, "users", firebaseUser.uid), {
-            displayName: userData?.displayName || firebaseUser.displayName,
-            photoURL: userData?.photoURL || firebaseUser.photoURL,
-            email: firebaseUser.email,
-            lastActive: serverTimestamp(),
-            isOnline: true,
-            isSetupComplete: userData?.isSetupComplete || false
-          }, { merge: true });
+          if (userData) {
+             await setDoc(doc(db, "users", firebaseUser.uid), {
+              isSetupComplete: userData.isSetupComplete || false
+            }, { merge: true });
+          }
         } else {
           setUser(null);
         }
       } catch (error) {
         console.error("Auth state change error:", error);
-        // Fallback for offline or restricted access
         if (firebaseUser) {
           setUser({
             ...firebaseUser,
-            isSetupComplete: false // Assume incomplete if we can't check
+            isSetupComplete: false
           } as any);
         } else {
           setUser(null);
@@ -63,6 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async () => {
     try {
+      await enableNetwork(db);
       await signInWithPopup(auth, googleProvider);
     } catch (error) {
       console.error("Login failed:", error);
@@ -70,13 +77,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = async () => {
-    if (user) {
-      await setDoc(doc(db, "users", user.uid), {
-        isOnline: false,
-        lastActive: serverTimestamp()
-      }, { merge: true });
+    try {
+      if (user) {
+        await setDoc(doc(db, "users", user.uid), {
+          isOnline: false,
+          lastActive: serverTimestamp()
+        }, { merge: true });
+      }
+      await signOut(auth);
+    } catch (error) {
+      console.error("Logout error:", error);
     }
-    await signOut(auth);
   };
 
   return (

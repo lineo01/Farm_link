@@ -154,9 +154,13 @@ export default function Chat() {
               <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
                 <Users className="w-4 h-4 text-primary" />
               </div>
-              <div>
+              <div className="flex-1">
                 <h3 className="font-bold text-sm">Community Chat</h3>
                 <p className="text-[10px] text-muted-foreground">Global channel for all farmers</p>
+              </div>
+              <div className="flex items-center gap-1.5 px-3 py-1 bg-green-50 rounded-full border border-green-100">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                <span className="text-[10px] font-bold text-green-700">{onlineUsers.length + (user ? 1 : 0)} Online</span>
               </div>
             </div>
 
