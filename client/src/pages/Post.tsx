@@ -61,7 +61,15 @@ export default function Post() {
         }
       }
 
-      await addDoc(collection(db, "products"), {
+      console.log("Submitting product data:", {
+        name: productName,
+        price: `Rs. ${price}`,
+        unit,
+        location: locationName,
+        userId: user.uid
+      });
+
+      const docRef = await addDoc(collection(db, "products"), {
         name: productName,
         price: `Rs. ${price}`,
         unit,
@@ -75,6 +83,8 @@ export default function Post() {
         createdAt: serverTimestamp(),
         userId: user.uid
       });
+      
+      console.log("Product posted successfully, ID:", docRef.id);
 
       toast({
         title: "Success",

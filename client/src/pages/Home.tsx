@@ -18,16 +18,29 @@ export default function Home() {
 
   useEffect(() => {
     console.log("Subscribing to products...");
-    const q = query(collection(db, "products"), orderBy("createdAt", "desc"));
+    const productsRef = collection(db, "products");
+    const q = query(productsRef, orderBy("createdAt", "desc"));
+    
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const productList = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      console.log("Products updated:", productList.length);
+      console.log("Firestore Snapshot received, size:", snapshot.size);
+      const productList = snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          // Ensure we have fallback values for display
+          name: data.name || "Unnamed Product",
+          farmer: data.farmer || "Unknown Farmer",
+          price: data.price || "Contact for price",
+          location: data.location || "Nepal",
+          image: data.image || "https://images.unsplash.com/photo-1566385278603-975bad627075?auto=format&fit=crop&q=80&w=800",
+          farmerImage: data.farmerImage || "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&q=80&w=200"
+        } as any;
+      });
+      console.log("Processed products:", productList.length);
       setProducts(productList);
     }, (error) => {
-      console.error("Product subscription error:", error);
+      console.error("Detailed product subscription error:", error);
     });
     return () => unsubscribe();
   }, []);
