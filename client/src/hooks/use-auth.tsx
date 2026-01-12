@@ -21,32 +21,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (firebaseUser) {
         console.log("Auth State Changed: User Logged In", firebaseUser.uid);
         
-        // Non-blocking Firestore sync
+        // Immediately set user to unblock the UI
+        setUser(firebaseUser as any);
+        setIsLoading(false);
+
+        // Background sync with Firestore
         const syncUser = async () => {
           try {
             const userDocRef = doc(db, "users", firebaseUser.uid);
             const userDoc = await getDoc(userDocRef);
-            const userData = userDoc.exists() ? userDoc.data() : null;
             
-            setUser({
-              ...firebaseUser,
-              displayName: userData?.displayName || firebaseUser.displayName,
-              photoURL: userData?.photoURL || firebaseUser.photoURL,
-              isSetupComplete: userData?.isSetupComplete || false
-            } as any);
+            if (userDoc.exists()) {
+              const userData = userDoc.data();
+              setUser({
+                ...firebaseUser,
+                displayName: userData.displayName || firebaseUser.displayName,
+                photoURL: userData.photoURL || firebaseUser.photoURL,
+                isSetupComplete: userData.isSetupComplete || false
+              } as any);
+            }
 
-            // Update presence in background
+            // Non-blocking presence update
             setDoc(userDocRef, {
               uid: firebaseUser.uid,
               email: firebaseUser.email,
               isOnline: true,
               lastActive: serverTimestamp()
-            }, { merge: true }).catch(err => console.error("Presence sync failed", err));
+            }, { merge: true }).catch(err => console.warn("Status update delayed", err));
           } catch (error) {
-            console.error("Firestore sync error:", error);
-            setUser(firebaseUser as any);
-          } finally {
-            setIsLoading(false);
+            console.warn("Profile sync error (likely offline):", error);
           }
         };
 
