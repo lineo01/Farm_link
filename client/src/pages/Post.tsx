@@ -45,8 +45,18 @@ export default function Post() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return;
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to post.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setIsLoading(true);
+    console.log("Starting product post...");
+
     try {
       let imageUrl = "https://images.unsplash.com/photo-1566385278603-975bad627075?auto=format&fit=crop&q=80&w=800";
       
@@ -55,23 +65,12 @@ export default function Post() {
           const imageRef = ref(storage, `products/${Date.now()}_${imageFile.name}`);
           const snapshot = await uploadBytes(imageRef, imageFile);
           imageUrl = await getDownloadURL(snapshot.ref);
+          console.log("Image uploaded successfully:", imageUrl);
         } catch (uploadError) {
           console.error("Image upload failed, using default:", uploadError);
-          // Fallback to default if upload fails (e.g. storage rules or network)
         }
       }
 
-      console.log("Submitting product data:", {
-        name: productName,
-        price: `Rs. ${price}`,
-        unit,
-        location: locationName,
-        userId: user.uid
-      });
-
-      // Wrap Firestore operations in a simpler structure to avoid potential hangs
-      const productsCollection = collection(db, "products");
-      
       const newProduct = {
         name: productName || "Unnamed Product",
         price: price ? `Rs. ${price}` : "Contact for price",
@@ -87,30 +86,29 @@ export default function Post() {
         userId: user.uid
       };
 
-      console.log("Submitting product data:", newProduct);
+      console.log("Adding to Firestore...");
+      // Add a timeout to the Firestore operation to prevent hanging
+      const postPromise = addDoc(collection(db, "products"), newProduct);
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error("Request timed out. Please try again.")), 15000)
+      );
 
-      try {
-        const docRef = await addDoc(collection(db, "products"), newProduct);
-        console.log("Product posted successfully, ID:", docRef.id);
-        
-        toast({
-          title: "Success",
-          description: "Your product has been posted and is now live!",
-        });
-        
-        setTimeout(() => {
-          setLocation("/");
-        }, 300);
-      } catch (dbError) {
-        console.error("Firestore addDoc failed:", dbError);
-        throw dbError;
-      }
+      const docRef = await Promise.race([postPromise, timeoutPromise]) as any;
+      console.log("Product posted successfully, ID:", docRef.id);
+      
+      toast({
+        title: "Success",
+        description: "Your product has been posted and is now live!",
+      });
+      
+      // Navigate immediately
+      setLocation("/");
     } catch (error: any) {
       console.error("Posting failed overall:", error);
       toast({
         title: "Error",
         variant: "destructive",
-        description: `Failed to post product: ${error.message || "Please try again."}`,
+        description: `Failed to post product: ${error.message || "Please check your connection."}`,
       });
     } finally {
       setIsLoading(false);
