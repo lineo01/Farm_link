@@ -72,7 +72,7 @@ export default function Post() {
       if (imageFile) {
         const formData = new FormData();
         formData.append('file', imageFile);
-        formData.append('upload_preset', 'ml_default');
+        formData.append('upload_preset', 'ReactApps');
         formData.append('cloud_name', 'dvvjvfois');
         
         try {
@@ -86,9 +86,12 @@ export default function Post() {
             console.log("Cloudinary upload successful:", imageUrl);
           } else {
             console.error("Cloudinary upload failed - no secure_url in response:", data);
+            // Fallback to Unsplash if upload fails so user isn't stuck
+            imageUrl = "https://images.unsplash.com/photo-1566385278603-975bad627075?auto=format&fit=crop&q=80&w=800";
           }
         } catch (uploadError) {
           console.error("Cloudinary upload failed:", uploadError);
+          imageUrl = "https://images.unsplash.com/photo-1566385278603-975bad627075?auto=format&fit=crop&q=80&w=800";
         }
       }
       

@@ -60,13 +60,13 @@ export default function ProductDetails() {
     <div className="bg-white min-h-screen pb-24">
       {/* Header Image */}
       <div className="relative h-[40vh]">
-        {product.image.includes('cloudinary.com') || !product.image.startsWith('http') ? (
+        {product.image && (product.image.includes('res.cloudinary.com') || product.image.includes('cloudinary.com') || !product.image.startsWith('http')) ? (
           <AdvancedImage 
             cldImg={cloudinary.image(product.image.split('/').pop()?.split('.')[0] || product.image).resize(fill().width(800).height(600))} 
             className="w-full h-full object-cover"
           />
         ) : (
-          <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+          <img src={product.image || "https://images.unsplash.com/photo-1566385278603-975bad627075?auto=format&fit=crop&q=80&w=800"} alt={product.name} className="w-full h-full object-cover" />
         )}
         <div className="absolute top-0 left-0 right-0 p-4 pt-8 bg-gradient-to-b from-black/60 to-transparent flex justify-between items-center">
           <Link href="/">

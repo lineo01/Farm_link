@@ -163,14 +163,14 @@ export default function Home() {
             {/* Product Image */}
             <Link href={`/product/${product.id}`}>
               <div className="relative aspect-square w-full bg-muted overflow-hidden group cursor-pointer">
-                {product.image.includes('cloudinary.com') || !product.image.startsWith('http') ? (
+                {product.image && (product.image.includes('res.cloudinary.com') || product.image.includes('cloudinary.com') || !product.image.startsWith('http')) ? (
                   <AdvancedImage 
                     cldImg={cloudinary.image(product.image.split('/').pop()?.split('.')[0] || product.image).resize(fill().width(600).height(600))} 
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                   />
                 ) : (
                   <img 
-                    src={product.image} 
+                    src={product.image || "https://images.unsplash.com/photo-1566385278603-975bad627075?auto=format&fit=crop&q=80&w=800"} 
                     alt={product.name}
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
                   />
