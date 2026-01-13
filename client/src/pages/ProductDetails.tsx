@@ -209,8 +209,12 @@ export default function ProductDetails() {
            <p className="text-xs text-muted-foreground">Total Price</p>
            <p className="text-xl font-bold text-primary">{product.price}</p>
         </div>
-        <Button size="lg" className="flex-1 rounded-xl font-bold shadow-lg shadow-primary/20">
-           Order Now
+        <Button 
+          size="lg" 
+          className="flex-1 rounded-xl font-bold shadow-lg shadow-primary/20"
+          onClick={() => window.location.href = 'https://esewa.com.np'}
+        >
+           Order Now (Pay with eSewa)
         </Button>
       </div>
     </div>
