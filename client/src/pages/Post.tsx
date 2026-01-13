@@ -72,7 +72,8 @@ export default function Post() {
       if (imageFile) {
         const formData = new FormData();
         formData.append('file', imageFile);
-        formData.append('upload_preset', 'ml_default'); // Assuming default preset
+        formData.append('upload_preset', 'ml_default');
+        formData.append('cloud_name', 'dvvjvfois');
         
         try {
           const response = await fetch(`https://api.cloudinary.com/v1_1/dvvjvfois/image/upload`, {
@@ -82,6 +83,9 @@ export default function Post() {
           const data = await response.json();
           if (data.secure_url) {
             imageUrl = data.secure_url;
+            console.log("Cloudinary upload successful:", imageUrl);
+          } else {
+            console.error("Cloudinary upload failed - no secure_url in response:", data);
           }
         } catch (uploadError) {
           console.error("Cloudinary upload failed:", uploadError);
