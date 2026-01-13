@@ -58,25 +58,9 @@ export default function Post() {
     console.log("Starting product post...");
 
     try {
-      // Step 1: Optimized Image Upload - smaller chunks, faster confirmation
+      // Step 1: Background Image Upload - Post first, upload in background
       let imageUrl = "https://images.unsplash.com/photo-1566385278603-975bad627075?auto=format&fit=crop&q=80&w=800";
       
-      if (imageFile) {
-        try {
-          console.log("Uploading image...");
-          const imageRef = ref(storage, `products/${Date.now()}_${imageFile.name}`);
-          // Use uploadBytes with metadata for potentially faster processing
-          const snapshot = await uploadBytes(imageRef, imageFile, {
-            contentType: imageFile.type,
-            cacheControl: 'public,max-age=3600'
-          });
-          imageUrl = await getDownloadURL(snapshot.ref);
-          console.log("Image ready:", imageUrl);
-        } catch (uploadError) {
-          console.error("Image upload failed, using default:", uploadError);
-        }
-      }
-
       const newProduct = {
         name: productName || "Unnamed Product",
         price: price ? `Rs. ${price}` : "Contact for price",
@@ -85,7 +69,7 @@ export default function Post() {
         description: description || "",
         farmer: user.displayName || "Farmer",
         farmerImage: user.photoURL || "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&q=80&w=200",
-        image: imageUrl,
+        image: imageUrl, // Initially use default
         postedTime: "Just now",
         likes: 0,
         createdAt: serverTimestamp(),
@@ -93,13 +77,8 @@ export default function Post() {
       };
 
       console.log("Saving to marketplace...");
-      // Add a timeout manually since Firestore's default can be long
-      const postPromise = addDoc(collection(db, "products"), newProduct);
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error("Network is slow. Your post will appear shortly.")), 8000)
-      );
-
-      const docRef = await Promise.race([postPromise, timeoutPromise]) as any;
+      // Save data immediately
+      const docRef = await addDoc(collection(db, "products"), newProduct);
       console.log("Post live! ID:", docRef.id);
       
       toast({
@@ -107,7 +86,29 @@ export default function Post() {
         description: "Your product is now live!",
       });
       
+      // Navigate away immediately
       setLocation("/");
+
+      // Step 2: Handle Image Upload in background after navigating
+      if (imageFile) {
+        (async () => {
+          try {
+            console.log("Uploading image in background...");
+            const imageRef = ref(storage, `products/${docRef.id}_${imageFile.name}`);
+            const snapshot = await uploadBytes(imageRef, imageFile);
+            const finalImageUrl = await getDownloadURL(snapshot.ref);
+            
+            // Update the document with the real image URL
+            const { updateDoc, doc } = await import("firebase/firestore");
+            await updateDoc(doc(db, "products", docRef.id), {
+              image: finalImageUrl
+            });
+            console.log("Image updated in background");
+          } catch (uploadError) {
+            console.error("Background upload failed:", uploadError);
+          }
+        })();
+      }
     } catch (error: any) {
       console.error("Posting failed overall:", error);
       // If it's a timeout, we still redirect because Firestore often syncs in background
