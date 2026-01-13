@@ -9,7 +9,7 @@ import { MARKET_RATES } from "@/lib/mockData";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { db, auth, storage } from "@/lib/firebase";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, addDoc, serverTimestamp, doc, updateDoc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -91,23 +91,34 @@ export default function Post() {
 
       // Step 2: Handle Image Upload in background after navigating
       if (imageFile) {
-        (async () => {
+        const backgroundUpload = async () => {
           try {
-            console.log("Uploading image in background...");
+            console.log("Uploading image in background for doc:", docRef.id);
             const imageRef = ref(storage, `products/${docRef.id}_${imageFile.name}`);
-            const snapshot = await uploadBytes(imageRef, imageFile);
-            const finalImageUrl = await getDownloadURL(snapshot.ref);
             
-            // Update the document with the real image URL
-            const { updateDoc, doc } = await import("firebase/firestore");
-            await updateDoc(doc(db, "products", docRef.id), {
+            // Step 2a: Upload the actual file
+            const snapshot = await uploadBytes(imageRef, imageFile, {
+              contentType: imageFile.type
+            });
+            console.log("Upload successful, getting URL...");
+            
+            // Step 2b: Get the public URL
+            const finalImageUrl = await getDownloadURL(snapshot.ref);
+            console.log("Final URL received:", finalImageUrl);
+            
+            // Step 2c: Update the marketplace listing
+            const docRefForUpdate = doc(db, "products", docRef.id);
+            await updateDoc(docRefForUpdate, {
               image: finalImageUrl
             });
-            console.log("Image updated in background");
-          } catch (uploadError) {
+            console.log("Marketplace listing updated with real image");
+          } catch (uploadError: any) {
             console.error("Background upload failed:", uploadError);
+            // We don't toast here as the user has already navigated away
           }
-        })();
+        };
+        
+        backgroundUpload();
       }
     } catch (error: any) {
       console.error("Posting failed overall:", error);
