@@ -87,26 +87,30 @@ export default function Post() {
         userId: user.uid
       };
 
-      // Use a more direct approach for Firestore adding
-      const docRef = await addDoc(collection(db, "products"), newProduct);
-      
-      console.log("Product posted successfully, ID:", docRef.id);
+      console.log("Submitting product data:", newProduct);
 
-      toast({
-        title: "Success",
-        description: "Your product has been posted and is now live!",
-      });
-      
-      // Navigate immediately but keep a slight buffer for the state to settle
-      setTimeout(() => {
-        setLocation("/");
-      }, 300);
-    } catch (error) {
-      console.error("Posting failed:", error);
+      try {
+        const docRef = await addDoc(collection(db, "products"), newProduct);
+        console.log("Product posted successfully, ID:", docRef.id);
+        
+        toast({
+          title: "Success",
+          description: "Your product has been posted and is now live!",
+        });
+        
+        setTimeout(() => {
+          setLocation("/");
+        }, 300);
+      } catch (dbError) {
+        console.error("Firestore addDoc failed:", dbError);
+        throw dbError;
+      }
+    } catch (error: any) {
+      console.error("Posting failed overall:", error);
       toast({
         title: "Error",
         variant: "destructive",
-        description: "Failed to post product. Please try again.",
+        description: `Failed to post product: ${error.message || "Please try again."}`,
       });
     } finally {
       setIsLoading(false);
