@@ -72,7 +72,7 @@ export default function Post() {
       if (imageFile) {
         const formData = new FormData();
         formData.append('file', imageFile);
-        formData.append('upload_preset', 'ReactApps');
+        formData.append('upload_preset', 'ml_default');
         formData.append('cloud_name', 'dvvjvfois');
         
         try {
