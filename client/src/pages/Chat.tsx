@@ -3,9 +3,10 @@ import { Input } from "@/components/ui/input";
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { db } from "@/lib/firebase";
-import { collection, query, onSnapshot, orderBy, addDoc, serverTimestamp, where } from "firebase/firestore";
+import { collection, query, onSnapshot, orderBy, addDoc, serverTimestamp, where, doc, getDoc, setDoc } from "firebase/firestore";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
+import { useLocation } from "wouter";
 
 export default function Chat() {
   const { user } = useAuth();
@@ -16,6 +17,19 @@ export default function Chat() {
   const [newMessage, setNewMessage] = useState("");
   const [showUsersList, setShowUsersList] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [params] = useLocation();
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const targetUserId = searchParams.get("user");
+    
+    if (targetUserId && onlineUsers.length > 0) {
+      const targetUser = onlineUsers.find(u => u.id === targetUserId);
+      if (targetUser) {
+        startChat(targetUser);
+      }
+    }
+  }, [onlineUsers]);
 
   useEffect(() => {
     // Listen for online users
@@ -96,9 +110,28 @@ export default function Chat() {
   };
 
   const startChat = async (targetUser: any) => {
-    // Simple chat starter logic
-    setActiveChat("main_community_chat"); // Simplified for now
-    setShowUsersList(false);
+    // Generate a consistent chat ID for two users (sorted UID combination)
+    const chatId = [user.uid, targetUser.id].sort().join("_");
+    
+    // Check if chat exists, if not create it
+    try {
+      const chatRef = doc(db, "chats", chatId);
+      const chatSnap = await getDoc(chatRef);
+      
+      if (!chatSnap.exists()) {
+        await setDoc(chatRef, {
+          participants: [user.uid, targetUser.id],
+          participantNames: [user.displayName, targetUser.displayName],
+          lastUpdated: serverTimestamp(),
+          type: "direct"
+        });
+      }
+      
+      setActiveChat(chatId);
+      setShowUsersList(false);
+    } catch (error) {
+      console.error("Error starting private chat:", error);
+    }
   };
 
   return (
@@ -165,8 +198,15 @@ export default function Chat() {
                 <Users className="w-4 h-4 text-primary" />
               </div>
               <div className="flex-1">
-                <h3 className="font-bold text-sm">Community Chat</h3>
-                <p className="text-[10px] text-muted-foreground">Global channel for all farmers</p>
+                <h3 className="font-bold text-sm">
+                  {activeChat === "main_community_chat" 
+                    ? "Community Chat" 
+                    : chats.find(c => c.id === activeChat)?.participantNames?.find(n => n !== user?.displayName) || "Private Chat"
+                  }
+                </h3>
+                <p className="text-[10px] text-muted-foreground">
+                  {activeChat === "main_community_chat" ? "Global channel for all farmers" : "Private message"}
+                </p>
               </div>
               <div className="flex items-center gap-1.5 px-3 py-1 bg-green-50 rounded-full border border-green-100">
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />

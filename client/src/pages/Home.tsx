@@ -229,7 +229,7 @@ export default function Home() {
 
               {/* Action Buttons */}
               <div className="grid grid-cols-2 gap-3">
-                 <Link href="/chat">
+                 <Link href={`/chat?user=${product.userId}`}>
                    <button className="w-full py-3 rounded-xl bg-muted/50 font-bold text-sm flex items-center justify-center gap-2 hover:bg-muted transition-colors text-foreground/80">
                       <MessageCircle className="w-4 h-4" /> Message
                    </button>
