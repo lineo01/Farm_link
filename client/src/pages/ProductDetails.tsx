@@ -6,6 +6,9 @@ import soilImage from "@assets/generated_images/detailed_farm_soil_close_up.png"
 import { db } from "@/lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
 import { useState, useEffect } from "react";
+import { cloudinary } from "@/lib/cloudinary";
+import { AdvancedImage } from "@cloudinary/react";
+import { fill } from "@cloudinary/url-gen/actions/resize";
 
 export default function ProductDetails() {
   const [match, params] = useRoute("/product/:id");
@@ -57,7 +60,14 @@ export default function ProductDetails() {
     <div className="bg-white min-h-screen pb-24">
       {/* Header Image */}
       <div className="relative h-[40vh]">
-        <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+        {product.image.includes('cloudinary.com') || !product.image.startsWith('http') ? (
+          <AdvancedImage 
+            cldImg={cloudinary.image(product.image.split('/').pop()?.split('.')[0] || product.image).resize(fill().width(800).height(600))} 
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+        )}
         <div className="absolute top-0 left-0 right-0 p-4 pt-8 bg-gradient-to-b from-black/60 to-transparent flex justify-between items-center">
           <Link href="/">
             <button className="bg-white/20 backdrop-blur-md p-2 rounded-full text-white hover:bg-white/30 transition-colors">

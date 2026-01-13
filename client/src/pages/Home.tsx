@@ -8,6 +8,9 @@ import { Heart, MessageCircle, ShoppingBag, TrendingUp, TrendingDown, Minus, Han
 import { db, auth } from "@/lib/firebase";
 import { collection, query, onSnapshot, orderBy } from "firebase/firestore";
 import { useAuth } from "@/hooks/use-auth";
+import { cloudinary } from "@/lib/cloudinary";
+import { AdvancedImage } from "@cloudinary/react";
+import { fill } from "@cloudinary/url-gen/actions/resize";
 
 export default function Home() {
   const { user } = useAuth();
@@ -160,11 +163,18 @@ export default function Home() {
             {/* Product Image */}
             <Link href={`/product/${product.id}`}>
               <div className="relative aspect-square w-full bg-muted overflow-hidden group cursor-pointer">
-                <img 
-                  src={product.image} 
-                  alt={product.name}
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
-                />
+                {product.image.includes('cloudinary.com') || !product.image.startsWith('http') ? (
+                  <AdvancedImage 
+                    cldImg={cloudinary.image(product.image.split('/').pop()?.split('.')[0] || product.image).resize(fill().width(600).height(600))} 
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
+                ) : (
+                  <img 
+                    src={product.image} 
+                    alt={product.name}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
+                  />
+                )}
                 
                 {/* Floating Price Tag & Overlay */}
                 <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent p-5 pt-20 flex flex-col justify-end">

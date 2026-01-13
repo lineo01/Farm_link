@@ -68,6 +68,26 @@ export default function Post() {
 
       let imageUrl = "https://images.unsplash.com/photo-1566385278603-975bad627075?auto=format&fit=crop&q=80&w=800";
       
+      // Cloudinary Upload Logic
+      if (imageFile) {
+        const formData = new FormData();
+        formData.append('file', imageFile);
+        formData.append('upload_preset', 'ml_default'); // Assuming default preset
+        
+        try {
+          const response = await fetch(`https://api.cloudinary.com/v1_1/dvvjvfois/image/upload`, {
+            method: 'POST',
+            body: formData,
+          });
+          const data = await response.json();
+          if (data.secure_url) {
+            imageUrl = data.secure_url;
+          }
+        } catch (uploadError) {
+          console.error("Cloudinary upload failed:", uploadError);
+        }
+      }
+      
       const newProduct = {
         name: productName || "Unnamed Product",
         price: price ? `Rs. ${price}` : "Contact for price",
@@ -86,26 +106,8 @@ export default function Post() {
       };
 
       console.log("Saving to marketplace...");
-      // Save data immediately to avoid "hanging"
       const docRef = await addDoc(collection(db, "products"), newProduct);
       console.log("Post live! ID:", docRef.id);
-      
-      // Step 2: Handle Image Upload - Blocking for a moment to ensure it starts
-      if (imageFile) {
-        try {
-          console.log("Uploading image for doc:", docRef.id);
-          const imageRef = ref(storage, `products/${docRef.id}_${imageFile.name}`);
-          const snapshot = await uploadBytes(imageRef, imageFile, {
-            contentType: imageFile.type
-          });
-          const finalImageUrl = await getDownloadURL(snapshot.ref);
-          await updateDoc(doc(db, "products", docRef.id), {
-            image: finalImageUrl
-          });
-        } catch (uploadError) {
-          console.error("Image upload failed:", uploadError);
-        }
-      }
 
       toast({
         title: "Success",
