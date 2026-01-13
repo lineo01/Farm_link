@@ -1,17 +1,57 @@
-import { PRODUCTS } from "@/lib/mockData";
 import { Link, useRoute } from "wouter";
-import { ArrowLeft, MapPin, Share2, ShieldCheck, Sprout, Droplets, Sun, Thermometer, MessageCircle, Send, BadgeCheck, HelpCircle } from "lucide-react";
+import { ArrowLeft, MapPin, Share2, ShieldCheck, Sprout, Droplets, Sun, Thermometer, MessageCircle, HelpCircle, BadgeCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { motion } from "framer-motion";
 import soilImage from "@assets/generated_images/detailed_farm_soil_close_up.png";
+import { db } from "@/lib/firebase";
+import { doc, getDoc } from "firebase/firestore";
+import { useState, useEffect } from "react";
 
 export default function ProductDetails() {
   const [match, params] = useRoute("/product/:id");
-  const id = params ? parseInt(params.id) : 0;
-  const product = PRODUCTS.find(p => p.id === id);
+  const id = params?.id;
+  const [product, setProduct] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-  if (!product) return <div>Product not found</div>;
+  useEffect(() => {
+    async function fetchProduct() {
+      if (!id) return;
+      try {
+        const docRef = doc(db, "products", id);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          setProduct({ id: docSnap.id, ...docSnap.data() });
+        }
+      } catch (error) {
+        console.error("Error fetching product:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchProduct();
+  }, [id]);
+
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center bg-white">
+      <div className="animate-pulse text-primary font-bold">Loading harvest details...</div>
+    </div>
+  );
+
+  if (!product) return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-white p-6 text-center">
+      <h2 className="text-2xl font-serif font-bold text-foreground mb-2">Product Not Found</h2>
+      <p className="text-muted-foreground mb-6">This harvest listing might have been removed or sold.</p>
+      <Link href="/">
+        <Button className="rounded-xl px-8">Back to Marketplace</Button>
+      </Link>
+    </div>
+  );
+
+  const sensorData = product.sensorData || {
+    temperature: "24°C",
+    soilMoisture: "65%",
+    uvIndex: "High"
+  };
 
   return (
     <div className="bg-white min-h-screen pb-24">
@@ -58,9 +98,13 @@ export default function ProductDetails() {
             Farming Details
           </h3>
           <div className="bg-muted/10 border border-border rounded-2xl p-5 space-y-4">
-             <p className="text-sm leading-relaxed text-muted-foreground">
-               {product.description} Grown using traditional methods with modern organic supplements. We prioritize soil health and strictly avoid chemical pesticides.
-             </p>
+             <div className="text-sm leading-relaxed text-muted-foreground">
+               <p className="mb-3 font-medium text-foreground">Growing Methods:</p>
+               <p>{product.description || "Grown using traditional methods with modern organic supplements. We prioritize soil health and strictly avoid chemical pesticides."}</p>
+               {product.methods && (
+                 <p className="mt-2 text-primary font-bold">{product.methods}</p>
+               )}
+             </div>
              
              <div className="grid grid-cols-2 gap-3">
                <div className="bg-white p-3 rounded-xl border border-border flex items-center gap-3">
@@ -85,7 +129,7 @@ export default function ProductDetails() {
           </div>
         </div>
 
-        {/* Live Farm Data (Mock IoT) */}
+        {/* Live Farm Data (Smart Sensors) */}
         <div>
            <h3 className="font-bold text-lg mb-4">Live Farm Conditions</h3>
            <div className="relative rounded-2xl overflow-hidden h-40 group">
@@ -96,7 +140,7 @@ export default function ProductDetails() {
                   <div className="bg-white/20 backdrop-blur-md p-3 rounded-full mb-2 mx-auto w-fit">
                     <Thermometer className="w-6 h-6 text-orange-300" />
                   </div>
-                  <p className="text-2xl font-bold">24°C</p>
+                  <p className="text-2xl font-bold">{sensorData.temperature}</p>
                   <p className="text-xs opacity-80">Soil Temp</p>
                 </div>
                 <div className="h-12 w-px bg-white/20"></div>
@@ -104,7 +148,7 @@ export default function ProductDetails() {
                   <div className="bg-white/20 backdrop-blur-md p-3 rounded-full mb-2 mx-auto w-fit">
                     <Droplets className="w-6 h-6 text-blue-300" />
                   </div>
-                  <p className="text-2xl font-bold">65%</p>
+                  <p className="text-2xl font-bold">{sensorData.soilMoisture || sensorData.humidity}</p>
                   <p className="text-xs opacity-80">Moisture</p>
                 </div>
                 <div className="h-12 w-px bg-white/20"></div>
@@ -112,12 +156,12 @@ export default function ProductDetails() {
                   <div className="bg-white/20 backdrop-blur-md p-3 rounded-full mb-2 mx-auto w-fit">
                     <Sun className="w-6 h-6 text-yellow-300" />
                   </div>
-                  <p className="text-2xl font-bold">High</p>
+                  <p className="text-2xl font-bold">{sensorData.uvIndex || "High"}</p>
                   <p className="text-xs opacity-80">UV Index</p>
                 </div>
              </div>
            </div>
-           <p className="text-xs text-muted-foreground mt-2 text-center">Data updated 5 mins ago via FarmIoT™ Sensors</p>
+           <p className="text-xs text-muted-foreground mt-2 text-center">Data auto-synced via FarmIoT™ Smart Sensors</p>
         </div>
 
         {/* Professional Q&A Section */}
@@ -128,7 +172,7 @@ export default function ProductDetails() {
           </div>
           
           <div className="space-y-4">
-             {/* Question 1 */}
+             {/* Questions logic remains similar but could be tied to DB later */}
              <div className="border-b border-border/50 pb-4">
                 <div className="flex items-start gap-2 mb-2">
                    <HelpCircle className="w-4 h-4 text-muted-foreground mt-0.5" />
@@ -140,37 +184,11 @@ export default function ProductDetails() {
                    </div>
                    <div>
                      <p className="text-sm text-muted-foreground leading-relaxed">
-                       Yes, these are Grade A salad tomatoes. They are harvested at peak ripeness to ensure firmness and flavor. Ideal for restaurants and hotels.
+                       Yes, these are Grade A salad tomatoes. Ideal for restaurants and hotels.
                      </p>
-                     <p className="text-[10px] text-muted-foreground mt-1 font-medium">Answered by Farmer • 2 days ago</p>
                    </div>
                 </div>
              </div>
-
-             {/* Question 2 */}
-             <div className="border-b border-border/50 pb-4">
-                <div className="flex items-start gap-2 mb-2">
-                   <HelpCircle className="w-4 h-4 text-muted-foreground mt-0.5" />
-                   <p className="text-sm font-semibold text-foreground">What is the shelf life after delivery?</p>
-                </div>
-                <div className="flex items-start gap-2 pl-6">
-                   <div className="min-w-[16px] mt-0.5">
-                     <BadgeCheck className="w-4 h-4 text-primary" />
-                   </div>
-                   <div>
-                     <p className="text-sm text-muted-foreground leading-relaxed">
-                       If stored between 10-15°C, they stay fresh for 7-10 days. We recommend immediate refrigeration for longer storage.
-                     </p>
-                     <p className="text-[10px] text-muted-foreground mt-1 font-medium">Answered by Farmer • 3 days ago</p>
-                   </div>
-                </div>
-             </div>
-          </div>
-
-          <div className="mt-4">
-             <Button variant="outline" className="w-full text-xs font-bold border-dashed border-2">
-               Ask a question
-             </Button>
           </div>
         </div>
       </div>

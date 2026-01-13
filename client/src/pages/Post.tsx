@@ -58,7 +58,14 @@ export default function Post() {
     console.log("Starting product post...");
 
     try {
-      // Step 1: Background Image Upload - Post first, upload in background
+      // Step 1: Prepare data with Mock Sensor Data (Simulating auto-add feature)
+      const mockSensorData = {
+        soilMoisture: "42%",
+        temperature: "24°C",
+        humidity: "65%",
+        phLevel: "6.8"
+      };
+
       let imageUrl = "https://images.unsplash.com/photo-1566385278603-975bad627075?auto=format&fit=crop&q=80&w=800";
       
       const newProduct = {
@@ -69,73 +76,50 @@ export default function Post() {
         description: description || "",
         farmer: user.displayName || "Farmer",
         farmerImage: user.photoURL || "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&q=80&w=200",
-        image: imageUrl, // Initially use default
+        image: imageUrl, 
         postedTime: "Just now",
         likes: 0,
         createdAt: serverTimestamp(),
-        userId: user.uid
+        userId: user.uid,
+        sensorData: mockSensorData,
+        methods: "Organic Farming, Drip Irrigation"
       };
 
       console.log("Saving to marketplace...");
-      // Save data immediately
+      // Save data immediately to avoid "hanging"
       const docRef = await addDoc(collection(db, "products"), newProduct);
       console.log("Post live! ID:", docRef.id);
       
+      // Step 2: Handle Image Upload - Blocking for a moment to ensure it starts
+      if (imageFile) {
+        try {
+          console.log("Uploading image for doc:", docRef.id);
+          const imageRef = ref(storage, `products/${docRef.id}_${imageFile.name}`);
+          const snapshot = await uploadBytes(imageRef, imageFile, {
+            contentType: imageFile.type
+          });
+          const finalImageUrl = await getDownloadURL(snapshot.ref);
+          await updateDoc(doc(db, "products", docRef.id), {
+            image: finalImageUrl
+          });
+        } catch (uploadError) {
+          console.error("Image upload failed:", uploadError);
+        }
+      }
+
       toast({
         title: "Success",
-        description: "Your product is now live!",
+        description: "Your product is now live with smart sensor data!",
       });
       
-      // Navigate away immediately
       setLocation("/");
-
-      // Step 2: Handle Image Upload in background after navigating
-      if (imageFile) {
-        const backgroundUpload = async () => {
-          try {
-            console.log("Uploading image in background for doc:", docRef.id);
-            const imageRef = ref(storage, `products/${docRef.id}_${imageFile.name}`);
-            
-            // Step 2a: Upload the actual file
-            const snapshot = await uploadBytes(imageRef, imageFile, {
-              contentType: imageFile.type
-            });
-            console.log("Upload successful, getting URL...");
-            
-            // Step 2b: Get the public URL
-            const finalImageUrl = await getDownloadURL(snapshot.ref);
-            console.log("Final URL received:", finalImageUrl);
-            
-            // Step 2c: Update the marketplace listing
-            const docRefForUpdate = doc(db, "products", docRef.id);
-            await updateDoc(docRefForUpdate, {
-              image: finalImageUrl
-            });
-            console.log("Marketplace listing updated with real image");
-          } catch (uploadError: any) {
-            console.error("Background upload failed:", uploadError);
-            // We don't toast here as the user has already navigated away
-          }
-        };
-        
-        backgroundUpload();
-      }
     } catch (error: any) {
       console.error("Posting failed overall:", error);
-      // If it's a timeout, we still redirect because Firestore often syncs in background
-      if (error.message.includes("Network is slow")) {
-        toast({
-          title: "Network Delay",
-          description: "Your post is being saved and will appear in a moment.",
-        });
-        setLocation("/");
-      } else {
-        toast({
-          title: "Error",
-          variant: "destructive",
-          description: `Failed to post: ${error.message || "Please check your connection."}`,
-        });
-      }
+      toast({
+        title: "Error",
+        variant: "destructive",
+        description: `Failed to post: ${error.message || "Please check your connection."}`,
+      });
     } finally {
       setIsLoading(false);
     }
