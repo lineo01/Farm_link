@@ -8,12 +8,14 @@ import { db } from "@/lib/firebase";
 import { doc, getDoc, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from "firebase/firestore";
 import { useState, useEffect } from "react";
 import { cloudinary } from "@/lib/cloudinary";
+import { useToast } from "@/hooks/use-toast";
 import { AdvancedImage } from "@cloudinary/react";
 import { fill } from "@cloudinary/url-gen/actions/resize";
 import { useAuth } from "@/hooks/use-auth";
 
 export default function ProductDetails() {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [match, params] = useRoute("/product/:id");
   const id = params?.id;
   const [product, setProduct] = useState<any>(null);
@@ -53,6 +55,23 @@ export default function ProductDetails() {
       return () => unsubscribe();
     }
   }, [id]);
+
+  const handleSendComment = async () => {
+    if (!newComment.trim() || !user || !id) return;
+
+    try {
+      await addDoc(collection(db, "products", id, "comments"), {
+        text: newComment,
+        userId: user.uid,
+        userName: user.displayName || "Farmer",
+        userPhoto: user.photoURL,
+        createdAt: serverTimestamp(),
+      });
+      setNewComment("");
+    } catch (error) {
+      console.error("Error adding comment:", error);
+    }
+  };
 
   const handleOrder = async () => {
     if (!user || !product) return;

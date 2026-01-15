@@ -9,10 +9,12 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
 import { useState, useEffect } from "react";
 import { db } from "@/lib/firebase";
-import { collection, query, where, onSnapshot } from "firebase/firestore";
+import { collection, query, where, onSnapshot, orderBy } from "firebase/firestore";
 import { Link } from "wouter";
+import { ShoppingBag } from "lucide-react";
 
 export default function Profile() {
+  const { user } = useAuth();
   const [myListings, setMyListings] = useState<any[]>([]);
   const [myOrders, setMyOrders] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<'listings' | 'orders'>('listings');
