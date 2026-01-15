@@ -40,8 +40,7 @@ export default function Profile() {
     // Listen to incoming orders for the farmer
     const qOrders = query(
       collection(db, "orders"),
-      where("sellerId", "==", user.uid),
-      orderBy("createdAt", "desc")
+      where("sellerId", "==", user.uid)
     );
 
     const unsubscribeOrders = onSnapshot(qOrders, (snapshot) => {

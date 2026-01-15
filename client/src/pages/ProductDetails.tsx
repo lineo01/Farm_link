@@ -2,6 +2,7 @@ import { Link, useRoute } from "wouter";
 import { ArrowLeft, MapPin, Share2, ShieldCheck, Sprout, Droplets, Sun, Thermometer, MessageCircle, HelpCircle, BadgeCheck, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import soilImage from "@assets/generated_images/detailed_farm_soil_close_up.png";
 import { db } from "@/lib/firebase";
