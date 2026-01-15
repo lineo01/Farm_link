@@ -3,13 +3,37 @@ import supermarketImage from "@assets/generated_images/modern_supermarket_logo_o
 import hotelImage from "@assets/generated_images/luxury_hotel_exterior.png";
 import wholesaleImage from "@assets/generated_images/wholesale_market_warehouse.png";
 import { Button } from "@/components/ui/button";
-import { Settings, MapPin, Phone, Star, Package, TrendingUp, TrendingDown, Wallet, FileText, Users, Building2, ChevronRight, Plus } from "lucide-react";
+import { Settings, MapPin, Phone, Star, Package, TrendingUp, TrendingDown, Wallet, FileText, Users, Building2, ChevronRight, Plus, ExternalLink } from "lucide-react";
 import { BALANCE_SHEET } from "@/lib/mockData";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
+import { useState, useEffect } from "react";
+import { db } from "@/lib/firebase";
+import { collection, query, where, onSnapshot } from "firebase/firestore";
+import { Link } from "wouter";
 
 export default function Profile() {
   const { user } = useAuth();
+  const [myListings, setMyListings] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const q = query(
+      collection(db, "products"),
+      where("userId", "==", user.uid)
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const listings = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setMyListings(listings);
+    });
+
+    return () => unsubscribe();
+  }, [user]);
   const SUPPLY_NETWORK = [
     { id: 1, name: "Bhat Bhateni", type: "Retail", status: "Active", image: supermarketImage },
     { id: 2, name: "Hotel Annapurna", type: "Hospitality", status: "Active", image: hotelImage },
@@ -154,19 +178,50 @@ export default function Profile() {
           </Button>
         </div>
 
-        {/* Menu */}
-        <div className="space-y-1">
-          <div className="p-3 hover:bg-muted/30 rounded-lg cursor-pointer transition-colors text-sm font-medium bg-white border border-transparent hover:border-border">
-            My Listings
+        {/* Menu & Listings */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between px-1">
+            <h3 className="font-bold text-lg">My Listings</h3>
+            <span className="text-xs font-bold text-primary bg-primary/10 px-3 py-1 rounded-full">{myListings.length} Active</span>
           </div>
-          <div className="p-3 hover:bg-muted/30 rounded-lg cursor-pointer transition-colors text-sm font-medium bg-white border border-transparent hover:border-border">
-            Order History
+
+          <div className="space-y-3">
+            {myListings.map((listing) => (
+              <Link key={listing.id} href={`/product/${listing.id}`}>
+                <div className="bg-white p-3 rounded-xl border border-border shadow-sm flex items-center gap-3 hover:bg-muted/30 transition-colors cursor-pointer group">
+                  <img src={listing.image} className="w-12 h-12 rounded-lg object-cover" />
+                  <div className="flex-1">
+                    <h4 className="font-bold text-sm">{listing.name}</h4>
+                    <p className="text-xs text-primary font-bold">{listing.price}</p>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:translate-x-1 transition-transform" />
+                </div>
+              </Link>
+            ))}
+            
+            {myListings.length === 0 && (
+              <div className="text-center py-10 bg-white rounded-2xl border border-dashed border-border">
+                <Package className="w-8 h-8 mx-auto mb-2 text-muted-foreground opacity-20" />
+                <p className="text-sm text-muted-foreground">No harvests listed yet.</p>
+                <Link href="/post">
+                  <Button variant="link" className="text-primary font-bold">Post your first harvest</Button>
+                </Link>
+              </div>
+            )}
           </div>
-          <div className="p-3 hover:bg-muted/30 rounded-lg cursor-pointer transition-colors text-sm font-medium bg-white border border-transparent hover:border-border">
-            Farm Details
-          </div>
-          <div className="p-3 hover:bg-muted/30 rounded-lg cursor-pointer transition-colors text-sm font-medium text-destructive bg-white border border-transparent hover:border-border">
-            Log Out
+
+          <div className="pt-4 space-y-1">
+            <div className="p-3 hover:bg-muted/30 rounded-lg cursor-pointer transition-colors text-sm font-medium bg-white border border-transparent hover:border-border flex justify-between items-center">
+              Order History
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+            </div>
+            <div className="p-3 hover:bg-muted/30 rounded-lg cursor-pointer transition-colors text-sm font-medium bg-white border border-transparent hover:border-border flex justify-between items-center">
+              Farm Details
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+            </div>
+            <div className="p-3 hover:bg-muted/30 rounded-lg cursor-pointer transition-colors text-sm font-medium text-destructive bg-white border border-transparent hover:border-border">
+              Log Out
+            </div>
           </div>
         </div>
       </div>
