@@ -1,20 +1,25 @@
 import { Link, useRoute } from "wouter";
-import { ArrowLeft, MapPin, Share2, ShieldCheck, Sprout, Droplets, Sun, Thermometer, MessageCircle, HelpCircle, BadgeCheck } from "lucide-react";
+import { ArrowLeft, MapPin, Share2, ShieldCheck, Sprout, Droplets, Sun, Thermometer, MessageCircle, HelpCircle, BadgeCheck, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { motion } from "framer-motion";
+import { Input } from "@/components/ui/input";
+import { motion, AnimatePresence } from "framer-motion";
 import soilImage from "@assets/generated_images/detailed_farm_soil_close_up.png";
 import { db } from "@/lib/firebase";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from "firebase/firestore";
 import { useState, useEffect } from "react";
 import { cloudinary } from "@/lib/cloudinary";
 import { AdvancedImage } from "@cloudinary/react";
 import { fill } from "@cloudinary/url-gen/actions/resize";
+import { useAuth } from "@/hooks/use-auth";
 
 export default function ProductDetails() {
+  const { user } = useAuth();
   const [match, params] = useRoute("/product/:id");
   const id = params?.id;
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [comments, setComments] = useState<any[]>([]);
+  const [newComment, setNewComment] = useState("");
 
   useEffect(() => {
     async function fetchProduct() {
@@ -32,7 +37,39 @@ export default function ProductDetails() {
       }
     }
     fetchProduct();
+
+    if (id) {
+      const q = query(
+        collection(db, "products", id, "comments"),
+        orderBy("createdAt", "desc")
+      );
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        const commentsList = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        setComments(commentsList);
+      });
+      return () => unsubscribe();
+    }
   }, [id]);
+
+  const handleSendComment = async () => {
+    if (!newComment.trim() || !user || !id) return;
+
+    try {
+      await addDoc(collection(db, "products", id, "comments"), {
+        text: newComment,
+        userId: user.uid,
+        userName: user.displayName || "Farmer",
+        userPhoto: user.photoURL,
+        createdAt: serverTimestamp(),
+      });
+      setNewComment("");
+    } catch (error) {
+      console.error("Error adding comment:", error);
+    }
+  };
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-white">
@@ -174,9 +211,49 @@ export default function ProductDetails() {
            <p className="text-xs text-muted-foreground mt-2 text-center">Data auto-synced via FarmIoT™ Smart Sensors</p>
         </div>
 
-        {/* Professional Q&A Section */}
+        {/* Live Comments Section */}
         <div>
           <div className="flex items-center justify-between mb-4">
+             <h3 className="font-bold text-lg">Live Community Comments</h3>
+             <span className="text-xs text-muted-foreground font-medium">{comments.length} comments</span>
+          </div>
+          
+          <div className="space-y-4 mb-6">
+            <div className="flex gap-3">
+              <Input 
+                placeholder="Ask a question about this harvest..." 
+                className="rounded-xl bg-muted/30 border-none focus-visible:ring-primary/20"
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSendComment()}
+              />
+              <Button size="icon" className="rounded-xl shrink-0" onClick={handleSendComment}>
+                <Send className="w-4 h-4" />
+              </Button>
+            </div>
+
+            <AnimatePresence initial={false}>
+              {comments.map((comment) => (
+                <motion.div 
+                  key={comment.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-muted/10 p-4 rounded-2xl border border-border/50"
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <img src={comment.userPhoto || `https://api.dicebear.com/7.x/avataaars/svg?seed=${comment.userId}`} className="w-6 h-6 rounded-full" />
+                    <span className="text-xs font-bold">{comment.userName}</span>
+                    <span className="text-[10px] text-muted-foreground">
+                      {comment.createdAt?.toDate ? comment.createdAt.toDate().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'Just now'}
+                    </span>
+                  </div>
+                  <p className="text-sm text-foreground/80 leading-relaxed">{comment.text}</p>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+
+          <div className="flex items-center justify-between mb-4 mt-8">
              <h3 className="font-bold text-lg">Buyer Questions (3)</h3>
              <span className="text-xs text-muted-foreground font-medium">All answered</span>
           </div>
