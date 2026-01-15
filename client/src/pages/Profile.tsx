@@ -12,6 +12,7 @@ import { db } from "@/lib/firebase";
 import { collection, query, where, onSnapshot, orderBy } from "firebase/firestore";
 import { Link } from "wouter";
 import { ShoppingBag } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function Profile() {
   const { user } = useAuth();
