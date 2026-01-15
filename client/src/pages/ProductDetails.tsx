@@ -54,20 +54,37 @@ export default function ProductDetails() {
     }
   }, [id]);
 
-  const handleSendComment = async () => {
-    if (!newComment.trim() || !user || !id) return;
-
+  const handleOrder = async () => {
+    if (!user || !product) return;
+    
     try {
-      await addDoc(collection(db, "products", id, "comments"), {
-        text: newComment,
-        userId: user.uid,
-        userName: user.displayName || "Farmer",
-        userPhoto: user.photoURL,
+      await addDoc(collection(db, "orders"), {
+        productId: product.id,
+        productName: product.name,
+        sellerId: product.userId,
+        buyerId: user.uid,
+        buyerName: user.displayName || "Buyer",
+        buyerPhoto: user.photoURL,
+        price: product.price,
+        status: "pending",
         createdAt: serverTimestamp(),
       });
-      setNewComment("");
+      
+      toast({
+        title: "Order Placed!",
+        description: "Redirecting you to eSewa for payment...",
+      });
+      
+      setTimeout(() => {
+        window.location.href = 'https://esewa.com.np';
+      }, 1500);
     } catch (error) {
-      console.error("Error adding comment:", error);
+      console.error("Error placing order:", error);
+      toast({
+        title: "Order Failed",
+        description: "Could not process your order. Please try again.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -289,7 +306,7 @@ export default function ProductDetails() {
         <Button 
           size="lg" 
           className="flex-1 rounded-xl font-bold shadow-lg shadow-primary/20"
-          onClick={() => window.location.href = 'https://esewa.com.np'}
+          onClick={handleOrder}
         >
            Order Now (Pay with eSewa)
         </Button>

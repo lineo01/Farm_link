@@ -13,18 +13,20 @@ import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { Link } from "wouter";
 
 export default function Profile() {
-  const { user } = useAuth();
   const [myListings, setMyListings] = useState<any[]>([]);
+  const [myOrders, setMyOrders] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState<'listings' | 'orders'>('listings');
 
   useEffect(() => {
     if (!user) return;
 
-    const q = query(
+    // Listen to listings
+    const qListings = query(
       collection(db, "products"),
       where("userId", "==", user.uid)
     );
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
+    const unsubscribeListings = onSnapshot(qListings, (snapshot) => {
       const listings = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
@@ -32,7 +34,25 @@ export default function Profile() {
       setMyListings(listings);
     });
 
-    return () => unsubscribe();
+    // Listen to incoming orders for the farmer
+    const qOrders = query(
+      collection(db, "orders"),
+      where("sellerId", "==", user.uid),
+      orderBy("createdAt", "desc")
+    );
+
+    const unsubscribeOrders = onSnapshot(qOrders, (snapshot) => {
+      const orders = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setMyOrders(orders);
+    });
+
+    return () => {
+      unsubscribeListings();
+      unsubscribeOrders();
+    };
   }, [user]);
   const SUPPLY_NETWORK = [
     { id: 1, name: "Bhat Bhateni", type: "Retail", status: "Active", image: supermarketImage },
@@ -178,43 +198,87 @@ export default function Profile() {
           </Button>
         </div>
 
-        {/* Menu & Listings */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between px-1">
-            <h3 className="font-bold text-lg">My Listings</h3>
-            <span className="text-xs font-bold text-primary bg-primary/10 px-3 py-1 rounded-full">{myListings.length} Active</span>
-          </div>
-
-          <div className="space-y-3">
-            {myListings.map((listing) => (
-              <Link key={listing.id} href={`/product/${listing.id}`}>
-                <div className="bg-white p-3 rounded-xl border border-border shadow-sm flex items-center gap-3 hover:bg-muted/30 transition-colors cursor-pointer group">
-                  <img src={listing.image} className="w-12 h-12 rounded-lg object-cover" />
-                  <div className="flex-1">
-                    <h4 className="font-bold text-sm">{listing.name}</h4>
-                    <p className="text-xs text-primary font-bold">{listing.price}</p>
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:translate-x-1 transition-transform" />
-                </div>
-              </Link>
-            ))}
-            
-            {myListings.length === 0 && (
-              <div className="text-center py-10 bg-white rounded-2xl border border-dashed border-border">
-                <Package className="w-8 h-8 mx-auto mb-2 text-muted-foreground opacity-20" />
-                <p className="text-sm text-muted-foreground">No harvests listed yet.</p>
-                <Link href="/post">
-                  <Button variant="link" className="text-primary font-bold">Post your first harvest</Button>
-                </Link>
-              </div>
+        {/* Tabs for Listings/Orders */}
+        <div className="flex gap-4 mb-4 border-b border-border">
+          <button 
+            onClick={() => setActiveTab('listings')}
+            className={cn(
+              "pb-2 px-1 text-sm font-bold transition-colors relative",
+              activeTab === 'listings' ? "text-primary" : "text-muted-foreground"
             )}
-          </div>
+          >
+            My Listings ({myListings.length})
+            {activeTab === 'listings' && <motion.div layoutId="tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />}
+          </button>
+          <button 
+            onClick={() => setActiveTab('orders')}
+            className={cn(
+              "pb-2 px-1 text-sm font-bold transition-colors relative",
+              activeTab === 'orders' ? "text-primary" : "text-muted-foreground"
+            )}
+          >
+            Incoming Orders ({myOrders.length})
+            {activeTab === 'orders' && <motion.div layoutId="tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />}
+          </button>
+        </div>
+
+        {/* Listings or Orders Content */}
+        <div className="space-y-4">
+          {activeTab === 'listings' ? (
+            <div className="space-y-3">
+              {myListings.map((listing) => (
+                <Link key={listing.id} href={`/product/${listing.id}`}>
+                  <div className="bg-white p-3 rounded-xl border border-border shadow-sm flex items-center gap-3 hover:bg-muted/30 transition-colors cursor-pointer group">
+                    <img src={listing.image} className="w-12 h-12 rounded-lg object-cover" />
+                    <div className="flex-1">
+                      <h4 className="font-bold text-sm">{listing.name}</h4>
+                      <p className="text-xs text-primary font-bold">{listing.price}</p>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </Link>
+              ))}
+              {myListings.length === 0 && (
+                <div className="text-center py-10 bg-white rounded-2xl border border-dashed border-border">
+                  <Package className="w-8 h-8 mx-auto mb-2 text-muted-foreground opacity-20" />
+                  <p className="text-sm text-muted-foreground">No harvests listed yet.</p>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {myOrders.map((order) => (
+                <div key={order.id} className="bg-white p-4 rounded-xl border border-border shadow-sm space-y-3">
+                  <div className="flex justify-between items-start">
+                    <div className="flex items-center gap-2">
+                      <img src={order.buyerPhoto || `https://api.dicebear.com/7.x/avataaars/svg?seed=${order.buyerId}`} className="w-8 h-8 rounded-full" />
+                      <div>
+                        <p className="text-xs font-bold">{order.buyerName}</p>
+                        <p className="text-[10px] text-muted-foreground">ordered {order.productName}</p>
+                      </div>
+                    </div>
+                    <span className="text-[10px] font-bold bg-primary/10 text-primary px-2 py-1 rounded-full uppercase">
+                      {order.status}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center pt-2 border-t border-border/50">
+                    <p className="text-sm font-bold text-primary">{order.price}</p>
+                    <p className="text-[10px] text-muted-foreground">
+                      {order.createdAt?.toDate ? order.createdAt.toDate().toLocaleDateString() : 'Just now'}
+                    </p>
+                  </div>
+                </div>
+              ))}
+              {myOrders.length === 0 && (
+                <div className="text-center py-10 bg-white rounded-2xl border border-dashed border-border">
+                  <ShoppingBag className="w-8 h-8 mx-auto mb-2 text-muted-foreground opacity-20" />
+                  <p className="text-sm text-muted-foreground">No orders received yet.</p>
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="pt-4 space-y-1">
-            <div className="p-3 hover:bg-muted/30 rounded-lg cursor-pointer transition-colors text-sm font-medium bg-white border border-transparent hover:border-border flex justify-between items-center">
-              Order History
-              <ChevronRight className="w-4 h-4 text-muted-foreground" />
-            </div>
             <div className="p-3 hover:bg-muted/30 rounded-lg cursor-pointer transition-colors text-sm font-medium bg-white border border-transparent hover:border-border flex justify-between items-center">
               Farm Details
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
