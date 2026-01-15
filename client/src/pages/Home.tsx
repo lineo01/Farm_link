@@ -1,10 +1,9 @@
 import { useState, useEffect } from "react";
-import { Search, Filter, MapPin, ChevronDown, SlidersHorizontal } from "lucide-react";
+import { Search, Filter, MapPin, ChevronDown, SlidersHorizontal, FileText, HandCoins, Heart, MessageCircle, ShoppingBag, TrendingUp, TrendingDown, Minus, ArrowRight } from "lucide-react";
 import { MARKET_RATES } from "@/lib/mockData";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { Heart, MessageCircle, ShoppingBag, TrendingUp, TrendingDown, Minus, HandCoins, ArrowRight } from "lucide-react";
 import { db, auth } from "@/lib/firebase";
 import { collection, query, onSnapshot, orderBy } from "firebase/firestore";
 import { useAuth } from "@/hooks/use-auth";
@@ -104,18 +103,29 @@ export default function Home() {
           </div>
         )}
         
-        {/* Tenders Banner */}
-        <Link href="/tenders">
-          <div className="mt-2 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl p-3 text-white flex items-center justify-between shadow-lg shadow-blue-200 cursor-pointer hover:scale-[1.01] transition-transform">
-             <div>
-               <p className="text-xs font-medium opacity-80">New Opportunities</p>
-               <p className="font-bold text-sm">3 Active Tenders for your crops</p>
-             </div>
-             <div className="bg-white/20 p-2 rounded-lg">
-               <ArrowRight className="w-4 h-4" />
-             </div>
+        {/* Quick Actions / Featured */}
+        <div className="grid grid-cols-2 gap-3 mb-4 px-1">
+          <Link href="/tenders">
+            <div className="bg-white p-3 rounded-2xl border border-border shadow-sm flex items-center gap-3 cursor-pointer hover:bg-muted/30 transition-colors">
+              <div className="bg-blue-100 p-2 rounded-xl text-blue-600">
+                <FileText className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-[10px] text-muted-foreground font-bold uppercase">Active</p>
+                <p className="text-xs font-bold">Tenders</p>
+              </div>
+            </div>
+          </Link>
+          <div className="bg-white p-3 rounded-2xl border border-border shadow-sm flex items-center gap-3 cursor-pointer hover:bg-muted/30 transition-colors">
+            <div className="bg-orange-100 p-2 rounded-xl text-orange-600">
+              <HandCoins className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-[10px] text-muted-foreground font-bold uppercase">Market</p>
+              <p className="text-xs font-bold">Rates</p>
+            </div>
           </div>
-        </Link>
+        </div>
       </div>
 
       {/* Product List */}
