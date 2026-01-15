@@ -244,9 +244,9 @@ export default function Home() {
                       <MessageCircle className="w-4 h-4" /> Message
                    </button>
                  </Link>
-                 <Link href="/tenders">
+                 <Link href={`/product/${product.id}`}>
                    <button className="w-full py-3 rounded-xl bg-primary text-white font-bold text-sm flex items-center justify-center gap-2 hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20">
-                      <ShoppingBag className="w-4 h-4" /> View Tenders
+                      <ShoppingBag className="w-4 h-4" /> Order Now
                    </button>
                  </Link>
               </div>

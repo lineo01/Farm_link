@@ -73,10 +73,15 @@ export default function ProductDetails() {
     }
   };
 
+  const [quantity, setQuantity] = useState(1);
+  const [paymentMode, setPaymentMode] = useState<'esewa' | 'cod'>('esewa');
+
   const handleOrder = async () => {
     if (!user || !product) return;
     
     try {
+      const totalPrice = parseFloat(product.price.replace(/[^0-9.]/g, '')) * quantity;
+      
       await addDoc(collection(db, "orders"), {
         productId: product.id,
         productName: product.name,
@@ -84,19 +89,25 @@ export default function ProductDetails() {
         buyerId: user.uid,
         buyerName: user.displayName || "Buyer",
         buyerPhoto: user.photoURL,
-        price: product.price,
+        price: `Rs. ${totalPrice}`,
+        quantity: quantity,
+        paymentMode: paymentMode,
         status: "pending",
         createdAt: serverTimestamp(),
       });
       
       toast({
         title: "Order Placed!",
-        description: "Redirecting you to eSewa for payment...",
+        description: paymentMode === 'esewa' 
+          ? "Redirecting you to eSewa for payment..." 
+          : "Order placed successfully with Cash on Delivery.",
       });
       
-      setTimeout(() => {
-        window.location.href = 'https://esewa.com.np';
-      }, 1500);
+      if (paymentMode === 'esewa') {
+        setTimeout(() => {
+          window.location.href = 'https://esewa.com.np';
+        }, 1500);
+      }
     } catch (error) {
       console.error("Error placing order:", error);
       toast({
@@ -317,18 +328,55 @@ export default function ProductDetails() {
       </div>
 
       {/* Sticky Bottom Action */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-border flex gap-3 pb-safe z-30 max-w-md mx-auto">
-        <div className="flex-1">
-           <p className="text-xs text-muted-foreground">Total Price</p>
-           <p className="text-xl font-bold text-primary">{product.price}</p>
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-border flex flex-col gap-3 pb-safe z-30 max-w-md mx-auto">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-col">
+            <p className="text-[10px] text-muted-foreground uppercase font-bold">Quantity</p>
+            <div className="flex items-center gap-3 bg-muted/30 rounded-lg p-1">
+              <button 
+                onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                className="w-8 h-8 flex items-center justify-center bg-white rounded-md shadow-sm border border-border font-bold"
+              >-</button>
+              <span className="font-bold w-4 text-center">{quantity}</span>
+              <button 
+                onClick={() => setQuantity(quantity + 1)}
+                className="w-8 h-8 flex items-center justify-center bg-white rounded-md shadow-sm border border-border font-bold"
+              >+</button>
+            </div>
+          </div>
+          <div className="flex flex-col flex-1">
+            <p className="text-[10px] text-muted-foreground uppercase font-bold text-right">Payment Mode</p>
+            <div className="flex gap-2 justify-end">
+              <button 
+                onClick={() => setPaymentMode('esewa')}
+                className={cn(
+                  "px-3 py-2 rounded-lg text-xs font-bold border transition-all",
+                  paymentMode === 'esewa' ? "bg-primary text-white border-primary" : "bg-white border-border text-muted-foreground"
+                )}
+              >eSewa</button>
+              <button 
+                onClick={() => setPaymentMode('cod')}
+                className={cn(
+                  "px-3 py-2 rounded-lg text-xs font-bold border transition-all",
+                  paymentMode === 'cod' ? "bg-primary text-white border-primary" : "bg-white border-border text-muted-foreground"
+                )}
+              >COD</button>
+            </div>
+          </div>
         </div>
-        <Button 
-          size="lg" 
-          className="flex-1 rounded-xl font-bold shadow-lg shadow-primary/20"
-          onClick={handleOrder}
-        >
-           Order Now (Pay with eSewa)
-        </Button>
+        <div className="flex gap-3">
+          <div className="flex-1">
+             <p className="text-xs text-muted-foreground">Total Price</p>
+             <p className="text-xl font-bold text-primary">Rs. {parseFloat(product.price.replace(/[^0-9.]/g, '')) * quantity}</p>
+          </div>
+          <Button 
+            size="lg" 
+            className="flex-1 rounded-xl font-bold shadow-lg shadow-primary/20"
+            onClick={handleOrder}
+          >
+             {paymentMode === 'esewa' ? 'Pay & Order' : 'Confirm Order'}
+          </Button>
+        </div>
       </div>
     </div>
   );
