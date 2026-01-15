@@ -1,10 +1,16 @@
-import { useState } from "react";
-import { MISSIONS, TIPS_LEADERBOARD } from "@/lib/mockData";
-import { Bot, Leaf, Trophy, ThumbsUp, ChevronRight, Zap, Activity } from "lucide-react";
+import { useState, useEffect } from "react";
+import { MISSIONS } from "@/lib/mockData";
+import { Bot, Leaf, Trophy, ThumbsUp, ChevronRight, Zap, Activity, Send, Share2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import robotImage from "@assets/generated_images/robot_arm_holding_a_plant_sprout.png";
 import badgeImage from "@assets/generated_images/gamified_farming_badge.png";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { db } from "@/lib/firebase";
+import { collection, query, onSnapshot, orderBy, addDoc, serverTimestamp, updateDoc, doc, increment, getDocs, where } from "firebase/firestore";
+import { useAuth } from "@/hooks/use-auth";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { toast } from "@/hooks/use-toast";
 
 // Mock IoT Data for Graph
 const SOIL_DATA = [
@@ -18,7 +24,67 @@ const SOIL_DATA = [
 ];
 
 export default function SmartAssistant() {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'ai' | 'missions' | 'tips' | 'iot'>('ai');
+  const [tips, setTips] = useState<any[]>([]);
+  const [newTip, setNewTip] = useState("");
+
+  useEffect(() => {
+    const q = query(collection(db, "community_tips"), orderBy("createdAt", "desc"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const tipsList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setTips(tipsList);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const handleShareTip = async () => {
+    if (!newTip.trim() || !user) return;
+
+    // Check one tip per day rule
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const q = query(
+      collection(db, "community_tips"),
+      where("userId", "==", user.uid),
+      where("createdAt", ">=", today)
+    );
+    
+    const snapshot = await getDocs(q);
+    if (!snapshot.empty) {
+      toast({
+        title: "Limit Reached",
+        description: "You can only share one expert tip per day. Keep farming!",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      await addDoc(collection(db, "community_tips"), {
+        tip: newTip,
+        farmer: user.displayName || "Farmer",
+        avatar: user.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.uid}`,
+        userId: user.uid,
+        likes: 0,
+        createdAt: serverTimestamp(),
+      });
+      setNewTip("");
+      toast({ title: "Tip Shared!", description: "Your farming wisdom is now live." });
+    } catch (error) {
+      console.error("Error sharing tip:", error);
+    }
+  };
+
+  const handleLikeTip = async (tipId: string) => {
+    try {
+      const tipRef = doc(db, "community_tips", tipId);
+      await updateDoc(tipRef, { likes: increment(1) });
+    } catch (error) {
+      console.error("Error liking tip:", error);
+    }
+  };
 
   return (
     <div className="h-full flex flex-col bg-muted/20">
@@ -187,11 +253,27 @@ export default function SmartAssistant() {
         )}
         
         {activeTab === 'tips' && (
-           <div className="space-y-4">
-            <h3 className="font-bold text-lg">Community Leaderboard</h3>
+           <div className="space-y-4 pb-20">
+            <div className="bg-white p-4 rounded-2xl border border-border shadow-sm space-y-3">
+              <h3 className="font-bold text-sm">Share Daily Expert Tip</h3>
+              <div className="flex gap-2">
+                <Input 
+                  placeholder="e.g., Best way to handle potato blight..." 
+                  value={newTip}
+                  onChange={(e) => setNewTip(e.target.value)}
+                  className="rounded-xl bg-muted/30 border-none"
+                />
+                <Button size="icon" className="rounded-xl shrink-0" onClick={handleShareTip}>
+                  <Send className="w-4 h-4" />
+                </Button>
+              </div>
+              <p className="text-[10px] text-muted-foreground italic">Rule: One expert tip per day to ensure high quality.</p>
+            </div>
+
+            <h3 className="font-bold text-lg">Live Community Wisdom</h3>
             <div className="space-y-3">
-              {TIPS_LEADERBOARD.map((item, index) => (
-                <div key={item.id} className="bg-white p-4 rounded-xl border border-border shadow-sm flex gap-3">
+              {tips.map((item, index) => (
+                <div key={item.id} className="bg-white p-4 rounded-xl border border-border shadow-sm flex gap-3 animate-in fade-in slide-in-from-bottom-2">
                   <div className="font-bold text-lg text-muted-foreground w-6 flex-shrink-0 flex items-center justify-center">
                     {index + 1}
                   </div>
@@ -199,12 +281,26 @@ export default function SmartAssistant() {
                   <div className="flex-1">
                     <h4 className="font-bold text-sm">{item.farmer}</h4>
                     <p className="text-xs text-muted-foreground italic mt-1">"{item.tip}"</p>
-                    <div className="flex items-center gap-1 mt-2 text-xs text-primary font-medium">
-                      <ThumbsUp className="w-3 h-3" /> {item.likes} helpful votes
+                    <div className="flex items-center gap-4 mt-3">
+                      <button 
+                        onClick={() => handleLikeTip(item.id)}
+                        className="flex items-center gap-1 text-xs text-primary font-bold hover:scale-105 transition-transform"
+                      >
+                        <ThumbsUp className="w-3 h-3" /> {item.likes} Helpful
+                      </button>
+                      <button className="flex items-center gap-1 text-xs text-muted-foreground font-medium hover:text-foreground">
+                        <Share2 className="w-3 h-3" /> Share
+                      </button>
                     </div>
                   </div>
                 </div>
               ))}
+              {tips.length === 0 && (
+                <div className="text-center py-10 text-muted-foreground">
+                  <Leaf className="w-8 h-8 mx-auto mb-2 opacity-20" />
+                  <p className="text-sm">No tips shared today. Be the first!</p>
+                </div>
+              )}
             </div>
           </div>
         )}
