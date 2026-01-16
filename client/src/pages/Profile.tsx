@@ -14,8 +14,11 @@ import { Link } from "wouter";
 import { ShoppingBag } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
+import { useToast } from "@/hooks/use-toast";
+
 export default function Profile() {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [myListings, setMyListings] = useState<any[]>([]);
   const [myOrders, setMyOrders] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<'listings' | 'orders'>('listings');
@@ -56,12 +59,35 @@ export default function Profile() {
       unsubscribeOrders();
     };
   }, [user]);
+  const [isAddingPartner, setIsAddingPartner] = useState(false);
+  const [newPartner, setNewPartner] = useState({ name: "", type: "Retail" });
+
   const SUPPLY_NETWORK = [
-    { id: 1, name: "Bhat Bhateni", type: "Retail", status: "Active", image: supermarketImage },
+    { id: 1, name: "Bhat Beni", type: "Retail", status: "Active", image: supermarketImage },
     { id: 2, name: "Hotel Annapurna", type: "Hospitality", status: "Active", image: hotelImage },
     { id: 3, name: "Kalimati Market", type: "Wholesale", status: "Active", image: wholesaleImage },
     { id: 4, name: "Big Mart", type: "Retail", status: "Pending", image: "https://images.unsplash.com/photo-1578916171728-46686eac8d58?auto=format&fit=crop&q=80&w=200" },
   ];
+
+  const [partners, setPartners] = useState(SUPPLY_NETWORK);
+
+  const handleAddPartner = () => {
+    if (!newPartner.name) return;
+    const partner = {
+      id: partners.length + 1,
+      name: newPartner.name,
+      type: newPartner.type,
+      status: "Pending",
+      image: "https://images.unsplash.com/photo-1578916171728-46686eac8d58?auto=format&fit=crop&q=80&w=200"
+    };
+    setPartners([...partners, partner]);
+    setIsAddingPartner(false);
+    setNewPartner({ name: "", type: "Retail" });
+    toast({
+      title: "Partner Request Sent",
+      description: `Connection request sent to ${newPartner.name}`,
+    });
+  };
 
   return (
     <div className="bg-muted/10 min-h-full">
@@ -117,11 +143,11 @@ export default function Profile() {
         <div className="mb-8">
            <div className="flex items-center justify-between mb-4 px-1">
              <h3 className="font-bold text-lg">My Network</h3>
-             <span className="text-xs font-bold text-primary bg-primary/10 px-3 py-1 rounded-full">{SUPPLY_NETWORK.length} Partners</span>
+             <span className="text-xs font-bold text-primary bg-primary/10 px-3 py-1 rounded-full">{partners.length} Partners</span>
            </div>
            
            <div className="grid grid-cols-2 gap-3">
-              {SUPPLY_NETWORK.map((partner) => (
+              {partners.map((partner) => (
                 <div key={partner.id} className="bg-white p-3 rounded-2xl border border-border shadow-sm relative overflow-hidden group">
                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10" />
                    <img src={partner.image} className="absolute inset-0 w-full h-full object-cover transition-transform group-hover:scale-110" />
@@ -142,12 +168,40 @@ export default function Profile() {
               ))}
               
               {/* Add New Card */}
-              <button className="bg-muted/30 border-2 border-dashed border-border rounded-2xl h-32 flex flex-col items-center justify-center gap-2 hover:bg-muted/50 transition-colors group">
-                 <div className="w-10 h-10 rounded-full bg-white border border-border flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
-                   <Plus className="w-5 h-5 text-muted-foreground" />
-                 </div>
-                 <span className="text-xs font-bold text-muted-foreground">Add Partner</span>
-              </button>
+              {isAddingPartner ? (
+                <div className="bg-white p-3 rounded-2xl border-2 border-primary border-dashed h-32 flex flex-col gap-2">
+                  <input 
+                    autoFocus
+                    placeholder="Partner Name"
+                    className="text-[10px] w-full p-1 border rounded"
+                    value={newPartner.name}
+                    onChange={(e) => setNewPartner({...newPartner, name: e.target.value})}
+                  />
+                  <select 
+                    className="text-[10px] w-full p-1 border rounded bg-white"
+                    value={newPartner.type}
+                    onChange={(e) => setNewPartner({...newPartner, type: e.target.value})}
+                  >
+                    <option>Retail</option>
+                    <option>Wholesale</option>
+                    <option>Hospitality</option>
+                  </select>
+                  <div className="flex gap-1 mt-auto">
+                    <Button size="sm" className="h-6 text-[10px] flex-1" onClick={handleAddPartner}>Add</Button>
+                    <Button size="sm" variant="ghost" className="h-6 text-[10px] flex-1" onClick={() => setIsAddingPartner(false)}>X</Button>
+                  </div>
+                </div>
+              ) : (
+                <button 
+                  onClick={() => setIsAddingPartner(true)}
+                  className="bg-muted/30 border-2 border-dashed border-border rounded-2xl h-32 flex flex-col items-center justify-center gap-2 hover:bg-muted/50 transition-colors group"
+                >
+                   <div className="w-10 h-10 rounded-full bg-white border border-border flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+                     <Plus className="w-5 h-5 text-muted-foreground" />
+                   </div>
+                   <span className="text-xs font-bold text-muted-foreground">Add Partner</span>
+                </button>
+              )}
            </div>
         </div>
 

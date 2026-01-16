@@ -2,12 +2,22 @@ import { Link, useLocation } from "wouter";
 import { Home, Plus, MessageSquare, User, Sprout, Bot, Bell } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+import { useToast } from "@/hooks/use-toast";
+
 interface MobileLayoutProps {
   children: React.ReactNode;
 }
 
 export function MobileLayout({ children }: MobileLayoutProps) {
   const [location] = useLocation();
+  const { toast } = useToast();
+
+  const handleNotificationClick = () => {
+    toast({
+      title: "Notifications",
+      description: "You have 1 new order and 2 unread messages.",
+    });
+  };
 
   const navItems = [
     { icon: Home, label: "Home", path: "/" },
@@ -43,12 +53,13 @@ export function MobileLayout({ children }: MobileLayoutProps) {
           </div>
 
           <div className="flex items-center gap-2">
-            <Link href="/notifications">
-              <div className="relative p-2 hover:bg-muted rounded-full transition-colors cursor-pointer">
-                <Bell className="w-5 h-5 text-foreground" />
-                <span className="absolute top-1.5 right-2 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
-              </div>
-            </Link>
+            <div 
+              onClick={handleNotificationClick}
+              className="relative p-2 hover:bg-muted rounded-full transition-colors cursor-pointer"
+            >
+              <Bell className="w-5 h-5 text-foreground" />
+              <span className="absolute top-1.5 right-2 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
+            </div>
             <Link href="/post" className="hidden md:block">
               <button className="bg-primary text-white px-4 py-2 rounded-xl shadow-lg hover:bg-primary/90 transition-all font-bold text-sm">
                 Sell Produce
