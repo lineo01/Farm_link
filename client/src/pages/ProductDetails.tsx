@@ -329,22 +329,22 @@ export default function ProductDetails() {
       </div>
 
       {/* Professional Billing Section */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/80 backdrop-blur-lg border-t border-border z-30 max-w-md mx-auto">
-        <div className="bg-muted/30 rounded-2xl p-4 mb-3 border border-border/50">
-          <div className="flex items-center justify-between mb-4">
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-border z-30 max-w-md mx-auto shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
             <div className="flex flex-col">
-              <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Select Quantity</span>
-              <div className="flex items-center gap-4 mt-1 bg-white rounded-xl p-1.5 border border-border shadow-sm">
+              <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider mb-1.5">Quantity (kg/units)</span>
+              <div className="flex items-center gap-4 bg-muted/30 rounded-xl p-1 border border-border/50">
                 <button 
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="w-8 h-8 flex items-center justify-center bg-muted/50 rounded-lg text-primary hover:bg-primary hover:text-white transition-colors"
+                  className="w-9 h-9 flex items-center justify-center bg-white rounded-lg text-primary shadow-sm active:scale-90 transition-transform"
                 >
                   <Minus className="w-4 h-4" />
                 </button>
                 <span className="font-bold text-lg w-6 text-center">{quantity}</span>
                 <button 
                   onClick={() => setQuantity(quantity + 1)}
-                  className="w-8 h-8 flex items-center justify-center bg-muted/50 rounded-lg text-primary hover:bg-primary hover:text-white transition-colors"
+                  className="w-9 h-9 flex items-center justify-center bg-white rounded-lg text-primary shadow-sm active:scale-90 transition-transform"
                 >
                   <Plus className="w-4 h-4" />
                 </button>
@@ -352,37 +352,37 @@ export default function ProductDetails() {
             </div>
 
             <div className="flex flex-col items-end">
-              <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Payment Method</span>
-              <div className="flex gap-2 mt-1 bg-white rounded-xl p-1 border border-border shadow-sm">
+              <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider mb-1.5">Payment Method</span>
+              <div className="flex gap-1 bg-muted/30 rounded-xl p-1 border border-border/50">
                 <button 
                   onClick={() => setPaymentMode('esewa')}
                   className={cn(
-                    "px-4 py-1.5 rounded-lg text-xs font-bold transition-all",
-                    paymentMode === 'esewa' ? "bg-primary text-white shadow-md" : "text-muted-foreground hover:bg-muted/50"
+                    "px-4 py-2 rounded-lg text-xs font-bold transition-all",
+                    paymentMode === 'esewa' ? "bg-white text-primary shadow-sm" : "text-muted-foreground"
                   )}
                 >eSewa</button>
                 <button 
                   onClick={() => setPaymentMode('cod')}
                   className={cn(
-                    "px-4 py-1.5 rounded-lg text-xs font-bold transition-all",
-                    paymentMode === 'cod' ? "bg-primary text-white shadow-md" : "text-muted-foreground hover:bg-muted/50"
+                    "px-4 py-2 rounded-lg text-xs font-bold transition-all",
+                    paymentMode === 'cod' ? "bg-white text-primary shadow-sm" : "text-muted-foreground"
                   )}
                 >COD</button>
               </div>
             </div>
           </div>
 
-          <div className="flex items-center justify-between pt-3 border-t border-border/50">
-            <div>
-              <p className="text-[10px] text-muted-foreground font-bold uppercase">Final Total</p>
-              <p className="text-2xl font-black text-primary">Rs. {(parseFloat(product.price.replace(/[^0-9.]/g, '')) * quantity).toLocaleString()}</p>
+          <div className="flex items-center justify-between gap-4 pt-4 border-t border-border/50">
+            <div className="flex-1">
+              <p className="text-[10px] text-muted-foreground font-bold uppercase">Final Amount</p>
+              <p className="text-2xl font-black text-foreground">Rs. {(parseFloat(product.price.replace(/[^0-9.]/g, '')) * quantity).toLocaleString()}</p>
             </div>
             <Button 
               size="lg" 
-              className="rounded-xl px-8 font-bold shadow-xl shadow-primary/30 h-12"
+              className="flex-1 h-14 rounded-2xl font-bold shadow-xl shadow-primary/20 text-base active:scale-[0.98] transition-all bg-primary"
               onClick={handleOrder}
             >
-               {paymentMode === 'esewa' ? 'Pay & Order' : 'Place Order'}
+               {paymentMode === 'esewa' ? 'Pay with eSewa' : 'Confirm Order'}
             </Button>
           </div>
         </div>

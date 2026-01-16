@@ -53,13 +53,12 @@ export function MobileLayout({ children }: MobileLayoutProps) {
           </div>
 
           <div className="flex items-center gap-2">
-            <div 
-              onClick={handleNotificationClick}
-              className="relative p-2 hover:bg-muted rounded-full transition-colors cursor-pointer"
-            >
-              <Bell className="w-5 h-5 text-foreground" />
-              <span className="absolute top-1.5 right-2 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
-            </div>
+            <Link href="/notifications">
+              <div className="relative p-2 hover:bg-muted rounded-full transition-colors cursor-pointer">
+                <Bell className="w-5 h-5 text-foreground" />
+                <span className="absolute top-1.5 right-2 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
+              </div>
+            </Link>
             <Link href="/post" className="hidden md:block">
               <button className="bg-primary text-white px-4 py-2 rounded-xl shadow-lg hover:bg-primary/90 transition-all font-bold text-sm">
                 Sell Produce

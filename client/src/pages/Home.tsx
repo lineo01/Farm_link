@@ -248,15 +248,15 @@ export default function Home() {
               </p>
 
               {/* Action Buttons */}
-              <div className="grid grid-cols-2 gap-3">
-                 <Link href={`/chat?user=${product.userId}`}>
+              <div className="flex items-center gap-3">
+                 <Link href={`/chat?user=${product.userId}`} className="flex-1">
                    <button className="w-full py-3 rounded-xl bg-muted/50 font-bold text-sm flex items-center justify-center gap-2 hover:bg-muted transition-colors text-foreground/80">
                       <MessageCircle className="w-4 h-4" /> Message
                    </button>
                  </Link>
-                 <Link href={`/product/${product.id}`}>
-                   <button className="w-full py-3 rounded-xl bg-primary text-white font-bold text-sm flex items-center justify-center gap-2 hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20">
-                      <ShoppingBag className="w-4 h-4" /> Order Now
+                 <Link href={`/product/${product.id}`} className="flex-[1.5]">
+                   <button className="w-full py-3 rounded-xl bg-black text-white font-bold text-sm flex items-center justify-center gap-2 hover:bg-black/90 transition-all shadow-xl shadow-black/10 active:scale-95">
+                      <ShoppingBag className="w-4 h-4" /> Buy Now
                    </button>
                  </Link>
               </div>
