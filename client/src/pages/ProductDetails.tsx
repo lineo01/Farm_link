@@ -210,9 +210,18 @@ export default function ProductDetails() {
                 </div>
               </div>
            </div>
-           <Link href="/chat">
-             <Button variant="outline" size="sm" className="rounded-full font-bold">Message</Button>
-           </Link>
+           <div className="flex items-center gap-2">
+             <Link href={`/chat?user=${product.userId}`}>
+               <Button variant="outline" size="sm" className="rounded-full font-bold">Message</Button>
+             </Link>
+             <Button 
+               size="sm" 
+               className="rounded-full font-bold bg-green-600 hover:bg-green-700 text-white shadow-lg shadow-green-500/20"
+               onClick={handleOrder}
+             >
+               Order Now
+             </Button>
+           </div>
         </div>
 
         {/* Farming Methods */}
@@ -357,25 +366,20 @@ export default function ProductDetails() {
         </div>
       </div>
 
-      {/* Professional Billing Section */}
-      <div className="fixed bottom-0 left-0 right-0 p-6 bg-white border-t border-border z-30 w-full shadow-[0_-15px_50px_rgba(0,0,0,0.15)] pb-12 animate-in slide-in-from-bottom duration-500">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex flex-col gap-6">
-
-            <div className="flex items-center gap-3">
-               <Link href={`/chat?user=${product.userId}`} className="flex-1">
-                 <Button variant="outline" className="w-full h-14 rounded-2xl font-bold border-2 hover:bg-muted transition-all">
-                   <MessageCircle className="w-5 h-5 mr-2" /> Message
-                 </Button>
-               </Link>
-               <Button 
-                 className="flex-[1.5] h-14 rounded-2xl font-black shadow-xl shadow-green-500/20 text-lg bg-green-600 hover:bg-green-700 active:scale-[0.98] transition-all"
-                 onClick={handleOrder}
-               >
-                 <ShoppingBag className="w-5 h-5 mr-2" /> Order Now
-               </Button>
-            </div>
+      {/* Bottom Action Bar */}
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/80 backdrop-blur-md border-t border-border z-30 w-full shadow-[0_-10px_40px_rgba(0,0,0,0.1)] pb-10">
+        <div className="max-w-4xl mx-auto flex items-center justify-between gap-4">
+          <div className="flex-1">
+            <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-tighter">Unit Price</p>
+            <p className="text-xl font-black text-foreground">{product.price}</p>
           </div>
+          <Button 
+            size="lg" 
+            className="flex-1 h-14 rounded-2xl font-black shadow-xl shadow-green-500/20 text-base active:scale-[0.98] transition-all bg-green-600 hover:bg-green-700"
+            onClick={handleOrder}
+          >
+             Order Now
+          </Button>
         </div>
       </div>
 
