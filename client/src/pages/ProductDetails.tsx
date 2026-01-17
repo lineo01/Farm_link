@@ -369,22 +369,6 @@ export default function ProductDetails() {
         </div>
       </div>
 
-      {/* Bottom Action Bar */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/80 backdrop-blur-md border-t border-border z-30 w-full shadow-[0_-10px_40px_rgba(0,0,0,0.1)] pb-10">
-        <div className="max-w-4xl mx-auto flex items-center justify-between gap-4">
-          <div className="flex-1">
-            <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-tighter">Unit Price</p>
-            <p className="text-xl font-black text-foreground">{product.price}</p>
-          </div>
-          <Button 
-            size="lg" 
-            className="flex-1 h-14 rounded-2xl font-black shadow-xl shadow-green-500/20 text-base active:scale-[0.98] transition-all bg-green-600 hover:bg-green-700"
-            onClick={handleOrder}
-          >
-             Order Now
-          </Button>
-        </div>
-      </div>
 
       <Dialog open={isPaymentModalOpen} onOpenChange={setIsPaymentModalOpen}>
         <DialogContent className="sm:max-w-md rounded-3xl mx-4 overflow-hidden p-0 border-none">
