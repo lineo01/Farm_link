@@ -90,8 +90,11 @@ export default function ProductDetails() {
 
   const getPriceValue = (priceString: string) => {
     if (!priceString) return 0;
-    const numericPart = priceString.replace(/[^0-9.]/g, '');
-    return parseFloat(numericPart) || 0;
+    // Extract numbers and handle possible currency formats
+    // Specifically handle "Rs. 50" -> 50
+    const cleanString = priceString.replace(/,/g, '');
+    const matches = cleanString.match(/\d+(\.\d+)?/);
+    return matches ? parseFloat(matches[0]) : 0;
   };
 
   const handleOrder = async () => {
