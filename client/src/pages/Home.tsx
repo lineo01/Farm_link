@@ -256,7 +256,7 @@ export default function Home() {
                  </Link>
                  <Link href={`/product/${product.id}`} className="flex-[1.5]">
                    <button className="w-full py-3 rounded-xl bg-black text-white font-bold text-sm flex items-center justify-center gap-2 hover:bg-black/90 transition-all shadow-xl shadow-black/10 active:scale-95">
-                      <ShoppingBag className="w-4 h-4" /> Buy Now
+                      <ShoppingBag className="w-4 h-4" /> Order Now
                    </button>
                  </Link>
               </div>

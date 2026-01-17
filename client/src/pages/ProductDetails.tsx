@@ -1,9 +1,17 @@
 import { Link, useRoute } from "wouter";
-import { ArrowLeft, MapPin, Share2, ShieldCheck, Sprout, Droplets, Sun, Thermometer, MessageCircle, HelpCircle, BadgeCheck, Send, Minus, Plus } from "lucide-react";
+import { ArrowLeft, MapPin, Share2, ShieldCheck, Sprout, Droplets, Sun, Thermometer, MessageCircle, HelpCircle, BadgeCheck, Send, Minus, Plus, CreditCard, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import soilImage from "@assets/generated_images/detailed_farm_soil_close_up.png";
 import { db } from "@/lib/firebase";
 import { doc, getDoc, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from "firebase/firestore";
@@ -76,9 +84,18 @@ export default function ProductDetails() {
 
   const [quantity, setQuantity] = useState(1);
   const [paymentMode, setPaymentMode] = useState<'esewa' | 'cod'>('esewa');
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
 
   const handleOrder = async () => {
     if (!user || !product) return;
+    setIsPaymentModalOpen(true);
+  };
+
+  const confirmOrder = async () => {
+    if (!user || !product) return;
+    setIsProcessing(true);
     
     try {
       const totalPrice = parseFloat(product.price.replace(/[^0-9.]/g, '')) * quantity;
@@ -97,20 +114,25 @@ export default function ProductDetails() {
         createdAt: serverTimestamp(),
       });
       
-      toast({
-        title: "Order Placed!",
-        description: paymentMode === 'esewa' 
-          ? "Redirecting you to eSewa for payment..." 
-          : "Order placed successfully with Cash on Delivery.",
-      });
-      
-      if (paymentMode === 'esewa') {
-        setTimeout(() => {
+      setIsSuccess(true);
+      setTimeout(() => {
+        setIsPaymentModalOpen(false);
+        setIsProcessing(false);
+        setIsSuccess(false);
+        toast({
+          title: "Order Placed!",
+          description: paymentMode === 'esewa' 
+            ? "Redirecting you to eSewa for payment..." 
+            : "Order placed successfully with Cash on Delivery.",
+        });
+        
+        if (paymentMode === 'esewa') {
           window.location.href = 'https://esewa.com.np';
-        }, 1500);
-      }
+        }
+      }, 2000);
     } catch (error) {
       console.error("Error placing order:", error);
+      setIsProcessing(false);
       toast({
         title: "Order Failed",
         description: "Could not process your order. Please try again.",
@@ -329,42 +351,42 @@ export default function ProductDetails() {
       </div>
 
       {/* Professional Billing Section */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-border z-30 max-w-md mx-auto shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/95 backdrop-blur-md border-t border-border z-30 max-w-md mx-auto shadow-[0_-10px_40px_rgba(0,0,0,0.1)] md:rounded-t-3xl md:static md:shadow-none md:border-none md:px-0 md:bg-transparent">
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex flex-col">
-              <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider mb-1.5">Quantity (kg/units)</span>
-              <div className="flex items-center gap-4 bg-muted/30 rounded-xl p-1 border border-border/50">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex flex-col flex-1">
+              <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider mb-1.5">Quantity</span>
+              <div className="flex items-center justify-between bg-muted/50 rounded-xl p-1 border border-border/50">
                 <button 
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="w-9 h-9 flex items-center justify-center bg-white rounded-lg text-primary shadow-sm active:scale-90 transition-transform"
+                  className="w-10 h-10 flex items-center justify-center bg-white rounded-lg text-primary shadow-sm active:scale-90 transition-transform"
                 >
                   <Minus className="w-4 h-4" />
                 </button>
-                <span className="font-bold text-lg w-6 text-center">{quantity}</span>
+                <span className="font-bold text-lg">{quantity}</span>
                 <button 
                   onClick={() => setQuantity(quantity + 1)}
-                  className="w-9 h-9 flex items-center justify-center bg-white rounded-lg text-primary shadow-sm active:scale-90 transition-transform"
+                  className="w-10 h-10 flex items-center justify-center bg-white rounded-lg text-primary shadow-sm active:scale-90 transition-transform"
                 >
                   <Plus className="w-4 h-4" />
                 </button>
               </div>
             </div>
 
-            <div className="flex flex-col items-end">
-              <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider mb-1.5">Payment Method</span>
-              <div className="flex gap-1 bg-muted/30 rounded-xl p-1 border border-border/50">
+            <div className="flex flex-col flex-1">
+              <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider mb-1.5 text-right">Method</span>
+              <div className="flex gap-1 bg-muted/50 rounded-xl p-1 border border-border/50">
                 <button 
                   onClick={() => setPaymentMode('esewa')}
                   className={cn(
-                    "px-4 py-2 rounded-lg text-xs font-bold transition-all",
+                    "flex-1 py-2 rounded-lg text-xs font-bold transition-all",
                     paymentMode === 'esewa' ? "bg-white text-primary shadow-sm" : "text-muted-foreground"
                   )}
                 >eSewa</button>
                 <button 
                   onClick={() => setPaymentMode('cod')}
                   className={cn(
-                    "px-4 py-2 rounded-lg text-xs font-bold transition-all",
+                    "flex-1 py-2 rounded-lg text-xs font-bold transition-all",
                     paymentMode === 'cod' ? "bg-white text-primary shadow-sm" : "text-muted-foreground"
                   )}
                 >COD</button>
@@ -374,19 +396,82 @@ export default function ProductDetails() {
 
           <div className="flex items-center justify-between gap-4 pt-4 border-t border-border/50">
             <div className="flex-1">
-              <p className="text-[10px] text-muted-foreground font-bold uppercase">Final Amount</p>
+              <p className="text-[10px] text-muted-foreground font-bold uppercase">Total</p>
               <p className="text-2xl font-black text-foreground">Rs. {(parseFloat(product.price.replace(/[^0-9.]/g, '')) * quantity).toLocaleString()}</p>
             </div>
             <Button 
               size="lg" 
-              className="flex-1 h-14 rounded-2xl font-bold shadow-xl shadow-primary/20 text-base active:scale-[0.98] transition-all bg-primary"
+              className="flex-[1.5] h-14 rounded-2xl font-bold shadow-xl shadow-primary/20 text-base active:scale-[0.98] transition-all bg-primary"
               onClick={handleOrder}
             >
-               {paymentMode === 'esewa' ? 'Pay with eSewa' : 'Confirm Order'}
+               {paymentMode === 'esewa' ? 'Checkout' : 'Confirm Order'}
             </Button>
           </div>
         </div>
       </div>
+
+      <Dialog open={isPaymentModalOpen} onOpenChange={setIsPaymentModalOpen}>
+        <DialogContent className="sm:max-w-md rounded-3xl mx-4">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-serif">Complete Order</DialogTitle>
+            <DialogDescription>
+              Please review your order details before confirming.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-6 py-4">
+            <div className="bg-muted/30 rounded-2xl p-4 border border-border/50 space-y-3">
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground font-medium">Product</span>
+                <span className="font-bold">{product.name}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground font-medium">Quantity</span>
+                <span className="font-bold">{quantity} kg/units</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground font-medium">Payment Mode</span>
+                <span className="font-bold uppercase text-primary">{paymentMode}</span>
+              </div>
+              <div className="pt-3 border-t border-border/50 flex justify-between items-end">
+                <span className="text-xs text-muted-foreground font-bold uppercase">Total Amount</span>
+                <span className="text-2xl font-black text-primary">Rs. {(parseFloat(product.price.replace(/[^0-9.]/g, '')) * quantity).toLocaleString()}</span>
+              </div>
+            </div>
+
+            {paymentMode === 'esewa' && (
+              <div className="flex items-center gap-3 p-3 bg-green-50 rounded-xl border border-green-100">
+                <div className="bg-green-100 p-2 rounded-full">
+                  <CreditCard className="w-5 h-5 text-green-600" />
+                </div>
+                <p className="text-xs text-green-700 font-medium">
+                  You will be redirected to the secure eSewa payment gateway.
+                </p>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button
+              className="w-full h-14 rounded-2xl font-bold text-lg shadow-xl shadow-primary/20"
+              onClick={confirmOrder}
+              disabled={isProcessing}
+            >
+              {isProcessing ? (
+                <div className="flex items-center gap-2">
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Processing...
+                </div>
+              ) : isSuccess ? (
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-5 h-5" />
+                  Order Success!
+                </div>
+              ) : (
+                paymentMode === 'esewa' ? 'Pay Now via eSewa' : 'Place Order Now'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
