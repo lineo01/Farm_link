@@ -88,6 +88,12 @@ export default function ProductDetails() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
+  const getPriceValue = (priceString: string) => {
+    if (!priceString) return 0;
+    const numericPart = priceString.replace(/[^0-9.]/g, '');
+    return parseFloat(numericPart) || 0;
+  };
+
   const handleOrder = async () => {
     if (!user || !product) return;
     setIsPaymentModalOpen(true);
@@ -98,7 +104,8 @@ export default function ProductDetails() {
     setIsProcessing(true);
     
     try {
-      const totalPrice = parseFloat(product.price.replace(/[^0-9.]/g, '')) * quantity;
+      const unitPrice = getPriceValue(product.price);
+      const totalPrice = unitPrice * quantity;
       
       await addDoc(collection(db, "orders"), {
         productId: product.id,
@@ -351,61 +358,67 @@ export default function ProductDetails() {
       </div>
 
       {/* Professional Billing Section */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/95 backdrop-blur-md border-t border-border z-30 w-full shadow-[0_-10px_40px_rgba(0,0,0,0.1)] pb-10">
-        <div className="max-w-4xl mx-auto space-y-4">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex flex-col flex-1">
-              <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider mb-1.5">Quantity</span>
-              <div className="flex items-center justify-between bg-muted/50 rounded-xl p-1 border border-border/50">
-                <button 
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="w-10 h-10 flex items-center justify-center bg-white rounded-lg text-primary shadow-sm active:scale-90 transition-transform"
-                >
-                  <Minus className="w-4 h-4" />
-                </button>
-                <span className="font-bold text-lg">{quantity}</span>
-                <button 
-                  onClick={() => setQuantity(quantity + 1)}
-                  className="w-10 h-10 flex items-center justify-center bg-white rounded-lg text-primary shadow-sm active:scale-90 transition-transform"
-                >
-                  <Plus className="w-4 h-4" />
-                </button>
+      <div className="fixed bottom-0 left-0 right-0 p-6 bg-white border-t border-border z-30 w-full shadow-[0_-15px_50px_rgba(0,0,0,0.15)] pb-12 animate-in slide-in-from-bottom duration-500">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex flex-col gap-6">
+            <div className="flex items-center justify-between">
+              <div className="flex flex-col">
+                <span className="text-xs text-muted-foreground font-bold uppercase tracking-wider mb-2">Set Quantity</span>
+                <div className="flex items-center gap-6 bg-muted/30 rounded-2xl p-2 border border-border/50">
+                  <button 
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    className="w-12 h-12 flex items-center justify-center bg-white rounded-xl text-primary shadow-sm active:scale-90 transition-all hover:bg-primary hover:text-white"
+                  >
+                    <Minus className="w-5 h-5" />
+                  </button>
+                  <div className="flex flex-col items-center min-w-[40px]">
+                    <span className="font-black text-2xl text-foreground">{quantity}</span>
+                    <span className="text-[10px] text-muted-foreground font-bold uppercase">KG/Units</span>
+                  </div>
+                  <button 
+                    onClick={() => setQuantity(quantity + 1)}
+                    className="w-12 h-12 flex items-center justify-center bg-white rounded-xl text-primary shadow-sm active:scale-90 transition-all hover:bg-primary hover:text-white"
+                  >
+                    <Plus className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex flex-col items-end">
+                <span className="text-xs text-muted-foreground font-bold uppercase tracking-wider mb-2">Select Payment</span>
+                <div className="flex gap-2 bg-muted/30 rounded-2xl p-1.5 border border-border/50">
+                  <button 
+                    onClick={() => setPaymentMode('esewa')}
+                    className={cn(
+                      "px-6 py-3 rounded-xl text-sm font-black transition-all",
+                      paymentMode === 'esewa' ? "bg-white text-primary shadow-md scale-105" : "text-muted-foreground hover:bg-white/50"
+                    )}
+                  >eSewa</button>
+                  <button 
+                    onClick={() => setPaymentMode('cod')}
+                    className={cn(
+                      "px-6 py-3 rounded-xl text-sm font-black transition-all",
+                      paymentMode === 'cod' ? "bg-white text-primary shadow-md scale-105" : "text-muted-foreground hover:bg-white/50"
+                    )}
+                  >COD</button>
+                </div>
               </div>
             </div>
 
-            <div className="flex flex-col flex-1">
-              <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider mb-1.5 text-right">Method</span>
-              <div className="flex gap-1 bg-muted/50 rounded-xl p-1 border border-border/50">
-                <button 
-                  onClick={() => setPaymentMode('esewa')}
-                  className={cn(
-                    "flex-1 py-2 rounded-lg text-xs font-bold transition-all",
-                    paymentMode === 'esewa' ? "bg-white text-primary shadow-sm" : "text-muted-foreground"
-                  )}
-                >eSewa</button>
-                <button 
-                  onClick={() => setPaymentMode('cod')}
-                  className={cn(
-                    "flex-1 py-2 rounded-lg text-xs font-bold transition-all",
-                    paymentMode === 'cod' ? "bg-white text-primary shadow-sm" : "text-muted-foreground"
-                  )}
-                >COD</button>
+            <div className="flex items-center justify-between gap-6 pt-6 border-t border-border/50">
+              <div className="flex-1">
+                <p className="text-xs text-muted-foreground font-bold uppercase tracking-tighter">Total Payable Amount</p>
+                <p className="text-3xl font-black text-foreground">Rs. {(getPriceValue(product.price) * quantity).toLocaleString()}</p>
+                <p className="text-[10px] text-primary font-bold mt-1 uppercase">Price by {product.farmer}</p>
               </div>
+              <Button 
+                size="lg" 
+                className="flex-[1.5] h-16 rounded-2xl font-black shadow-2xl shadow-primary/30 text-lg active:scale-[0.98] transition-all bg-primary hover:bg-primary/90"
+                onClick={handleOrder}
+              >
+                 {paymentMode === 'esewa' ? 'Pay & Checkout' : 'Place Order'}
+              </Button>
             </div>
-          </div>
-
-          <div className="flex items-center justify-between gap-4 pt-4 border-t border-border/50">
-            <div className="flex-1">
-              <p className="text-[10px] text-muted-foreground font-bold uppercase">Total</p>
-              <p className="text-2xl font-black text-foreground">Rs. {(parseFloat(product.price.replace(/[^0-9.]/g, '')) * quantity).toLocaleString()}</p>
-            </div>
-            <Button 
-              size="lg" 
-              className="flex-[1.5] h-14 rounded-2xl font-bold shadow-xl shadow-primary/20 text-base active:scale-[0.98] transition-all bg-primary"
-              onClick={handleOrder}
-            >
-               {paymentMode === 'esewa' ? 'Checkout' : 'Confirm Order'}
-            </Button>
           </div>
         </div>
       </div>
@@ -434,7 +447,7 @@ export default function ProductDetails() {
               </div>
               <div className="pt-3 border-t border-border/50 flex justify-between items-end">
                 <span className="text-xs text-muted-foreground font-bold uppercase">Total Amount</span>
-                <span className="text-2xl font-black text-primary">Rs. {(parseFloat(product.price.replace(/[^0-9.]/g, '')) * quantity).toLocaleString()}</span>
+                <span className="text-2xl font-black text-primary">Rs. {(getPriceValue(product.price) * quantity).toLocaleString()}</span>
               </div>
             </div>
 
