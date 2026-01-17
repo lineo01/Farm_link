@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Search, Filter, MapPin, ChevronDown, SlidersHorizontal, FileText, HandCoins, Heart, MessageCircle, ShoppingBag, TrendingUp, TrendingDown, Minus, ArrowRight } from "lucide-react";
+import { Search, Filter, MapPin, ChevronDown, SlidersHorizontal, FileText, HandCoins, Heart, MessageCircle, ShoppingBag, TrendingUp, TrendingDown, Minus, ArrowRight, Sprout } from "lucide-react";
 import { MARKET_RATES } from "@/lib/mockData";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
