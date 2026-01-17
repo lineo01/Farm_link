@@ -87,11 +87,17 @@ export default function ProductDetails() {
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [deliveryDetails, setDeliveryDetails] = useState({
+    fullName: "",
+    phone: "",
+    province: "",
+    city: "",
+    area: "",
+    address: ""
+  });
 
   const getPriceValue = (priceString: string) => {
     if (!priceString) return 0;
-    // Extract numbers and handle possible currency formats
-    // Specifically handle "Rs. 50" -> 50
     const cleanString = priceString.replace(/,/g, '');
     const matches = cleanString.match(/\d+(\.\d+)?/);
     return matches ? parseFloat(matches[0]) : 0;
@@ -104,6 +110,15 @@ export default function ProductDetails() {
 
   const confirmOrder = async () => {
     if (!user || !product) return;
+    if (!deliveryDetails.fullName || !deliveryDetails.phone || !deliveryDetails.address) {
+      toast({
+        title: "Details Required",
+        description: "Please fill in your name, phone, and address.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsProcessing(true);
     
     try {
@@ -115,8 +130,9 @@ export default function ProductDetails() {
         productName: product.name,
         sellerId: product.userId,
         buyerId: user.uid,
-        buyerName: user.displayName || "Buyer",
-        buyerPhoto: user.photoURL,
+        buyerName: deliveryDetails.fullName,
+        buyerPhone: deliveryDetails.phone,
+        deliveryAddress: `${deliveryDetails.address}, ${deliveryDetails.area}, ${deliveryDetails.city}, ${deliveryDetails.province}`,
         price: `Rs. ${totalPrice}`,
         quantity: quantity,
         paymentMode: paymentMode,
@@ -371,16 +387,81 @@ export default function ProductDetails() {
 
 
       <Dialog open={isPaymentModalOpen} onOpenChange={setIsPaymentModalOpen}>
-        <DialogContent className="sm:max-w-md rounded-3xl mx-4 overflow-hidden p-0 border-none">
-          <div className="bg-white p-6 space-y-6">
+        <DialogContent className="sm:max-w-md rounded-3xl mx-4 overflow-hidden p-0 border-none max-h-[90vh] flex flex-col">
+          <div className="bg-white p-6 space-y-6 overflow-y-auto no-scrollbar">
             <DialogHeader className="text-left">
-              <DialogTitle className="text-2xl font-serif font-black">Complete Your Order</DialogTitle>
+              <DialogTitle className="text-2xl font-serif font-black">Delivery Details</DialogTitle>
               <DialogDescription className="font-medium text-muted-foreground">
-                Set quantity and confirm your purchase from <span className="text-primary font-bold">{product.farmer}</span>
+                Enter your shipping information for <span className="text-primary font-bold">{product.farmer}</span>
               </DialogDescription>
             </DialogHeader>
 
             <div className="space-y-6">
+              {/* Delivery Form */}
+              <div className="space-y-4">
+                <div className="grid gap-2">
+                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Full Name</label>
+                  <Input 
+                    placeholder="Enter your first and last name" 
+                    className="rounded-2xl h-12 bg-muted/30 border-none focus-visible:ring-primary/20"
+                    value={deliveryDetails.fullName}
+                    onChange={(e) => setDeliveryDetails({...deliveryDetails, fullName: e.target.value})}
+                  />
+                </div>
+
+                <div className="grid gap-2">
+                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Phone Number</label>
+                  <Input 
+                    placeholder="Please enter your phone number" 
+                    type="number"
+                    className="rounded-2xl h-12 bg-muted/30 border-none focus-visible:ring-primary/20"
+                    value={deliveryDetails.phone}
+                    onChange={(e) => setDeliveryDetails({...deliveryDetails, phone: e.target.value})}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Province</label>
+                    <Input 
+                      placeholder="Province" 
+                      className="rounded-2xl h-12 bg-muted/30 border-none focus-visible:ring-primary/20"
+                      value={deliveryDetails.province}
+                      onChange={(e) => setDeliveryDetails({...deliveryDetails, province: e.target.value})}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">City</label>
+                    <Input 
+                      placeholder="City" 
+                      className="rounded-2xl h-12 bg-muted/30 border-none focus-visible:ring-primary/20"
+                      value={deliveryDetails.city}
+                      onChange={(e) => setDeliveryDetails({...deliveryDetails, city: e.target.value})}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid gap-2">
+                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Area / Landmark</label>
+                  <Input 
+                    placeholder="E.g. Near Bus Park" 
+                    className="rounded-2xl h-12 bg-muted/30 border-none focus-visible:ring-primary/20"
+                    value={deliveryDetails.area}
+                    onChange={(e) => setDeliveryDetails({...deliveryDetails, area: e.target.value})}
+                  />
+                </div>
+
+                <div className="grid gap-2">
+                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Detailed Address</label>
+                  <Input 
+                    placeholder="House No, Street, Ward" 
+                    className="rounded-2xl h-12 bg-muted/30 border-none focus-visible:ring-primary/20"
+                    value={deliveryDetails.address}
+                    onChange={(e) => setDeliveryDetails({...deliveryDetails, address: e.target.value})}
+                  />
+                </div>
+              </div>
+
               {/* Refined Quantity Selector */}
               <div className="flex flex-col items-center justify-center py-4 bg-muted/30 rounded-3xl border border-border/50">
                 <span className="text-[10px] text-muted-foreground font-black uppercase tracking-widest mb-4">Select Quantity (KG/Units)</span>
@@ -421,7 +502,7 @@ export default function ProductDetails() {
                 </div>
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-3 pb-4">
                 <span className="text-[10px] text-muted-foreground font-black uppercase tracking-widest ml-1">Payment Method</span>
                 <div className="grid grid-cols-2 gap-3">
                   <button 
@@ -448,25 +529,27 @@ export default function ProductDetails() {
               </div>
             </div>
 
-            <Button
-              className="w-full h-16 rounded-2xl font-black text-xl shadow-xl shadow-primary/20 bg-primary hover:bg-primary/90 mt-4"
-              onClick={confirmOrder}
-              disabled={isProcessing}
-            >
-              {isProcessing ? (
-                <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 border-4 border-white/30 border-t-white rounded-full animate-spin" />
-                  <span>Processing...</span>
-                </div>
-              ) : isSuccess ? (
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-6 h-6" />
-                  <span>Success!</span>
-                </div>
-              ) : (
-                <span>Confirm Order</span>
-              )}
-            </Button>
+            <div className="sticky bottom-0 bg-white pt-2 pb-6 px-1">
+              <Button
+                className="w-full h-16 rounded-2xl font-black text-xl shadow-xl shadow-primary/20 bg-primary hover:bg-primary/90"
+                onClick={confirmOrder}
+                disabled={isProcessing}
+              >
+                {isProcessing ? (
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 border-4 border-white/30 border-t-white rounded-full animate-spin" />
+                    <span>Processing...</span>
+                  </div>
+                ) : isSuccess ? (
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-6 h-6" />
+                    <span>Success!</span>
+                  </div>
+                ) : (
+                  <span>Confirm Order</span>
+                )}
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
