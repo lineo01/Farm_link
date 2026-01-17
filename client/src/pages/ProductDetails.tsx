@@ -164,7 +164,7 @@ export default function ProductDetails() {
   };
 
   return (
-    <div className="bg-white min-h-screen pb-24">
+    <div className="bg-white min-h-screen pb-60">
       {/* Header Image */}
       <div className="relative h-[40vh]">
         {product.image && (product.image.includes('res.cloudinary.com') || product.image.includes('cloudinary.com') || !product.image.startsWith('http')) ? (
@@ -351,7 +351,7 @@ export default function ProductDetails() {
       </div>
 
       {/* Professional Billing Section */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/95 backdrop-blur-md border-t border-border z-30 max-w-md mx-auto shadow-[0_-10px_40px_rgba(0,0,0,0.1)] md:rounded-t-3xl md:static md:shadow-none md:border-none md:px-0 md:bg-transparent">
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/95 backdrop-blur-md border-t border-border z-30 max-w-md mx-auto shadow-[0_-10px_40px_rgba(0,0,0,0.1)] md:rounded-t-3xl md:static md:shadow-none md:border-none md:px-0 md:bg-transparent pb-12">
         <div className="space-y-4">
           <div className="flex items-center justify-between gap-4">
             <div className="flex flex-col flex-1">
