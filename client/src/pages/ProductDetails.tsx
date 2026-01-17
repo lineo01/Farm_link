@@ -1,5 +1,5 @@
 import { Link, useRoute } from "wouter";
-import { ArrowLeft, MapPin, Share2, ShieldCheck, Sprout, Droplets, Sun, Thermometer, MessageCircle, HelpCircle, BadgeCheck, Send, Minus, Plus, CreditCard, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, MapPin, Share2, ShieldCheck, Sprout, Droplets, Sun, Thermometer, MessageCircle, HelpCircle, BadgeCheck, Send, Minus, Plus, CreditCard, CheckCircle2, ShoppingBag, HandCoins } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -361,128 +361,122 @@ export default function ProductDetails() {
       <div className="fixed bottom-0 left-0 right-0 p-6 bg-white border-t border-border z-30 w-full shadow-[0_-15px_50px_rgba(0,0,0,0.15)] pb-12 animate-in slide-in-from-bottom duration-500">
         <div className="max-w-4xl mx-auto">
           <div className="flex flex-col gap-6">
-            <div className="flex items-center justify-between">
-              <div className="flex flex-col">
-                <span className="text-xs text-muted-foreground font-bold uppercase tracking-wider mb-2">Set Quantity</span>
-                <div className="flex items-center gap-6 bg-muted/30 rounded-2xl p-2 border border-border/50">
-                  <button 
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="w-12 h-12 flex items-center justify-center bg-white rounded-xl text-primary shadow-sm active:scale-90 transition-all hover:bg-primary hover:text-white"
-                  >
-                    <Minus className="w-5 h-5" />
-                  </button>
-                  <div className="flex flex-col items-center min-w-[40px]">
-                    <span className="font-black text-2xl text-foreground">{quantity}</span>
-                    <span className="text-[10px] text-muted-foreground font-bold uppercase">KG/Units</span>
-                  </div>
-                  <button 
-                    onClick={() => setQuantity(quantity + 1)}
-                    className="w-12 h-12 flex items-center justify-center bg-white rounded-xl text-primary shadow-sm active:scale-90 transition-all hover:bg-primary hover:text-white"
-                  >
-                    <Plus className="w-5 h-5" />
-                  </button>
-                </div>
-              </div>
 
-              <div className="flex flex-col items-end">
-                <span className="text-xs text-muted-foreground font-bold uppercase tracking-wider mb-2">Select Payment</span>
-                <div className="flex gap-2 bg-muted/30 rounded-2xl p-1.5 border border-border/50">
-                  <button 
-                    onClick={() => setPaymentMode('esewa')}
-                    className={cn(
-                      "px-6 py-3 rounded-xl text-sm font-black transition-all",
-                      paymentMode === 'esewa' ? "bg-white text-primary shadow-md scale-105" : "text-muted-foreground hover:bg-white/50"
-                    )}
-                  >eSewa</button>
-                  <button 
-                    onClick={() => setPaymentMode('cod')}
-                    className={cn(
-                      "px-6 py-3 rounded-xl text-sm font-black transition-all",
-                      paymentMode === 'cod' ? "bg-white text-primary shadow-md scale-105" : "text-muted-foreground hover:bg-white/50"
-                    )}
-                  >COD</button>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between gap-6 pt-6 border-t border-border/50">
-              <div className="flex-1">
-                <p className="text-xs text-muted-foreground font-bold uppercase tracking-tighter">Total Payable Amount</p>
-                <p className="text-3xl font-black text-foreground">Rs. {(getPriceValue(product.price) * quantity).toLocaleString()}</p>
-                <p className="text-[10px] text-primary font-bold mt-1 uppercase">Price by {product.farmer}</p>
-              </div>
-              <Button 
-                size="lg" 
-                className="flex-[1.5] h-16 rounded-2xl font-black shadow-2xl shadow-primary/30 text-lg active:scale-[0.98] transition-all bg-primary hover:bg-primary/90"
-                onClick={handleOrder}
-              >
-                 {paymentMode === 'esewa' ? 'Pay & Checkout' : 'Place Order'}
-              </Button>
+            <div className="flex items-center gap-3">
+               <Link href={`/chat?user=${product.userId}`} className="flex-1">
+                 <Button variant="outline" className="w-full h-14 rounded-2xl font-bold border-2 hover:bg-muted transition-all">
+                   <MessageCircle className="w-5 h-5 mr-2" /> Message
+                 </Button>
+               </Link>
+               <Button 
+                 className="flex-[1.5] h-14 rounded-2xl font-black shadow-xl shadow-green-500/20 text-lg bg-green-600 hover:bg-green-700 active:scale-[0.98] transition-all"
+                 onClick={handleOrder}
+               >
+                 <ShoppingBag className="w-5 h-5 mr-2" /> Order Now
+               </Button>
             </div>
           </div>
         </div>
       </div>
 
       <Dialog open={isPaymentModalOpen} onOpenChange={setIsPaymentModalOpen}>
-        <DialogContent className="sm:max-w-md rounded-3xl mx-4">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-serif">Complete Order</DialogTitle>
-            <DialogDescription>
-              Please review your order details before confirming.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-6 py-4">
-            <div className="bg-muted/30 rounded-2xl p-4 border border-border/50 space-y-3">
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground font-medium">Product</span>
-                <span className="font-bold">{product.name}</span>
+        <DialogContent className="sm:max-w-md rounded-3xl mx-4 overflow-hidden p-0 border-none">
+          <div className="bg-white p-6 space-y-6">
+            <DialogHeader className="text-left">
+              <DialogTitle className="text-2xl font-serif font-black">Complete Your Order</DialogTitle>
+              <DialogDescription className="font-medium text-muted-foreground">
+                Set quantity and confirm your purchase from <span className="text-primary font-bold">{product.farmer}</span>
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-6">
+              {/* Refined Quantity Selector */}
+              <div className="flex flex-col items-center justify-center py-4 bg-muted/30 rounded-3xl border border-border/50">
+                <span className="text-[10px] text-muted-foreground font-black uppercase tracking-widest mb-4">Select Quantity (KG/Units)</span>
+                <div className="flex items-center gap-8">
+                  <button 
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    className="w-14 h-14 flex items-center justify-center bg-white rounded-2xl text-primary shadow-md active:scale-90 transition-all hover:bg-primary hover:text-white"
+                  >
+                    <Minus className="w-6 h-6" strokeWidth={3} />
+                  </button>
+                  <div className="text-center min-w-[60px]">
+                    <span className="text-5xl font-black text-foreground tabular-nums">{quantity}</span>
+                  </div>
+                  <button 
+                    onClick={() => setQuantity(quantity + 1)}
+                    className="w-14 h-14 flex items-center justify-center bg-white rounded-2xl text-primary shadow-md active:scale-90 transition-all hover:bg-primary hover:text-white"
+                  >
+                    <Plus className="w-6 h-6" strokeWidth={3} />
+                  </button>
+                </div>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground font-medium">Quantity</span>
-                <span className="font-bold">{quantity} kg/units</span>
+
+              {/* Enhanced Order Summary */}
+              <div className="bg-white rounded-2xl p-4 border-2 border-primary/10 space-y-3 shadow-sm">
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground text-sm font-bold">Unit Price</span>
+                  <span className="font-bold">{product.price}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground text-sm font-bold">Total Quantity</span>
+                  <span className="font-bold">{quantity} KG/Units</span>
+                </div>
+                <div className="pt-3 border-t border-dashed border-border flex justify-between items-end">
+                  <div className="flex flex-col">
+                    <span className="text-[10px] text-muted-foreground font-black uppercase tracking-tighter">Total Amount</span>
+                    <span className="text-3xl font-black text-primary">Rs. {(getPriceValue(product.price) * quantity).toLocaleString()}</span>
+                  </div>
+                </div>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground font-medium">Payment Mode</span>
-                <span className="font-bold uppercase text-primary">{paymentMode}</span>
-              </div>
-              <div className="pt-3 border-t border-border/50 flex justify-between items-end">
-                <span className="text-xs text-muted-foreground font-bold uppercase">Total Amount</span>
-                <span className="text-2xl font-black text-primary">Rs. {(getPriceValue(product.price) * quantity).toLocaleString()}</span>
+
+              <div className="space-y-3">
+                <span className="text-[10px] text-muted-foreground font-black uppercase tracking-widest ml-1">Payment Method</span>
+                <div className="grid grid-cols-2 gap-3">
+                  <button 
+                    onClick={() => setPaymentMode('esewa')}
+                    className={cn(
+                      "flex flex-col items-center gap-1 p-3 rounded-2xl border-2 transition-all",
+                      paymentMode === 'esewa' ? "bg-primary/5 border-primary" : "bg-white border-border/50 text-muted-foreground"
+                    )}
+                  >
+                    <CreditCard className={cn("w-5 h-5", paymentMode === 'esewa' ? "text-primary" : "text-muted-foreground")} />
+                    <span className="text-xs font-black">eSewa</span>
+                  </button>
+                  <button 
+                    onClick={() => setPaymentMode('cod')}
+                    className={cn(
+                      "flex flex-col items-center gap-1 p-3 rounded-2xl border-2 transition-all",
+                      paymentMode === 'cod' ? "bg-primary/5 border-primary" : "bg-white border-border/50 text-muted-foreground"
+                    )}
+                  >
+                    <HandCoins className={cn("w-5 h-5", paymentMode === 'cod' ? "text-primary" : "text-muted-foreground")} />
+                    <span className="text-xs font-black">Cash On Delivery</span>
+                  </button>
+                </div>
               </div>
             </div>
 
-            {paymentMode === 'esewa' && (
-              <div className="flex items-center gap-3 p-3 bg-green-50 rounded-xl border border-green-100">
-                <div className="bg-green-100 p-2 rounded-full">
-                  <CreditCard className="w-5 h-5 text-green-600" />
-                </div>
-                <p className="text-xs text-green-700 font-medium">
-                  You will be redirected to the secure eSewa payment gateway.
-                </p>
-              </div>
-            )}
-          </div>
-          <DialogFooter>
             <Button
-              className="w-full h-14 rounded-2xl font-bold text-lg shadow-xl shadow-primary/20"
+              className="w-full h-16 rounded-2xl font-black text-xl shadow-xl shadow-primary/20 bg-primary hover:bg-primary/90 mt-4"
               onClick={confirmOrder}
               disabled={isProcessing}
             >
               {isProcessing ? (
                 <div className="flex items-center gap-2">
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Processing...
+                  <div className="w-6 h-6 border-4 border-white/30 border-t-white rounded-full animate-spin" />
+                  <span>Processing...</span>
                 </div>
               ) : isSuccess ? (
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-5 h-5" />
-                  Order Success!
+                  <CheckCircle2 className="w-6 h-6" />
+                  <span>Success!</span>
                 </div>
               ) : (
-                paymentMode === 'esewa' ? 'Pay Now via eSewa' : 'Place Order Now'
+                <span>Confirm Order</span>
               )}
             </Button>
-          </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
