@@ -47,12 +47,17 @@ export default function SmartAssistant() {
     
     const q = query(
       collection(db, "community_tips"),
-      where("userId", "==", user.uid),
-      where("createdAt", ">=", today)
+      where("userId", "==", user.uid)
     );
     
     const snapshot = await getDocs(q);
-    if (!snapshot.empty) {
+    const hasTipToday = snapshot.docs.some(doc => {
+      const data = doc.data();
+      const createdAt = data.createdAt?.toDate();
+      return createdAt && createdAt >= today;
+    });
+
+    if (hasTipToday) {
       toast({
         title: "Limit Reached",
         description: "You can only share one expert tip per day. Keep farming!",
