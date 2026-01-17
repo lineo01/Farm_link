@@ -273,7 +273,7 @@ export default function Profile() {
               activeTab === 'orders' ? "text-primary" : "text-muted-foreground"
             )}
           >
-            Incoming Orders ({myOrders.length})
+            Manage Orders ({myOrders.length})
             {activeTab === 'orders' && <motion.div layoutId="tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />}
           </button>
         </div>
@@ -304,24 +304,55 @@ export default function Profile() {
           ) : (
             <div className="space-y-3">
               {myOrders.map((order) => (
-                <div key={order.id} className="bg-white p-4 rounded-xl border border-border shadow-sm space-y-3">
+                <div key={order.id} className="bg-white p-4 rounded-xl border border-border shadow-sm space-y-4">
                   <div className="flex justify-between items-start">
-                    <div className="flex items-center gap-2">
-                      <img src={order.buyerPhoto || `https://api.dicebear.com/7.x/avataaars/svg?seed=${order.buyerId}`} className="w-8 h-8 rounded-full" />
+                    <div className="flex items-center gap-3">
+                      <div className="bg-primary/10 p-2 rounded-full">
+                        <Package className="w-5 h-5 text-primary" />
+                      </div>
                       <div>
-                        <p className="text-xs font-bold">{order.buyerName}</p>
-                        <p className="text-[10px] text-muted-foreground">ordered {order.productName}</p>
+                        <p className="text-sm font-bold text-foreground">{order.productName}</p>
+                        <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Order ID: #{order.id.slice(-6).toUpperCase()}</p>
                       </div>
                     </div>
-                    <span className="text-[10px] font-bold bg-primary/10 text-primary px-2 py-1 rounded-full uppercase">
+                    <span className="text-[10px] font-black bg-primary text-white px-3 py-1 rounded-full uppercase shadow-sm">
                       {order.status}
                     </span>
                   </div>
+
+                  <div className="bg-muted/30 rounded-2xl p-4 border border-border/50 space-y-3">
+                    <div className="flex items-center gap-3">
+                      <img src={order.buyerPhoto || `https://api.dicebear.com/7.x/avataaars/svg?seed=${order.buyerId}`} className="w-10 h-10 rounded-full border-2 border-white shadow-sm" />
+                      <div>
+                        <p className="text-xs font-black text-foreground">{order.buyerName}</p>
+                        <div className="flex items-center gap-1 text-[10px] text-muted-foreground font-medium">
+                          <Phone className="w-3 h-3" /> {order.buyerPhone || "N/A"}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="pt-2 border-t border-dashed border-border/50">
+                      <div className="flex items-start gap-2">
+                        <MapPin className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                        <div>
+                          <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">Shipping Address</p>
+                          <p className="text-xs font-bold leading-relaxed mt-0.5">{order.deliveryAddress || "Address not provided"}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
                   <div className="flex justify-between items-center pt-2 border-t border-border/50">
-                    <p className="text-sm font-bold text-primary">{order.price}</p>
-                    <p className="text-[10px] text-muted-foreground">
-                      {order.createdAt?.toDate ? order.createdAt.toDate().toLocaleDateString() : 'Just now'}
-                    </p>
+                    <div>
+                      <p className="text-[10px] text-muted-foreground font-black uppercase">Earnings</p>
+                      <p className="text-lg font-black text-primary">{order.price}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[10px] text-muted-foreground font-medium">{order.paymentMode?.toUpperCase()} Payment</p>
+                      <p className="text-[10px] text-muted-foreground">
+                        {order.createdAt?.toDate ? order.createdAt.toDate().toLocaleDateString() : 'Just now'}
+                      </p>
+                    </div>
                   </div>
                 </div>
               ))}
