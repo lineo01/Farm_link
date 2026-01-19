@@ -3,25 +3,43 @@ import supermarketImage from "@assets/generated_images/modern_supermarket_logo_o
 import hotelImage from "@assets/generated_images/luxury_hotel_exterior.png";
 import wholesaleImage from "@assets/generated_images/wholesale_market_warehouse.png";
 import { Button } from "@/components/ui/button";
-import { Settings, MapPin, Phone, Star, Package, TrendingUp, TrendingDown, Wallet, FileText, Users, Building2, ChevronRight, Plus, ExternalLink } from "lucide-react";
+import { Settings, MapPin, Phone, Star, Package, TrendingUp, TrendingDown, Wallet, FileText, Users, Building2, ChevronRight, Plus, ExternalLink, LogOut } from "lucide-react";
 import { BALANCE_SHEET } from "@/lib/mockData";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
 import { useState, useEffect } from "react";
 import { db } from "@/lib/firebase";
 import { collection, query, where, onSnapshot, orderBy } from "firebase/firestore";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { ShoppingBag } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { useToast } from "@/hooks/use-toast";
 
 export default function Profile() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
   const [myListings, setMyListings] = useState<any[]>([]);
   const [myOrders, setMyOrders] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<'listings' | 'orders'>('listings');
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      setLocation("/auth");
+      toast({
+        title: "Logged Out",
+        description: "You have been successfully logged out.",
+      });
+    } catch (error) {
+      toast({
+        title: "Logout Failed",
+        description: "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -370,7 +388,11 @@ export default function Profile() {
               Farm Details
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </div>
-            <div className="p-3 hover:bg-muted/30 rounded-lg cursor-pointer transition-colors text-sm font-medium text-destructive bg-white border border-transparent hover:border-border">
+            <div 
+              onClick={handleLogout}
+              className="p-3 hover:bg-muted/30 rounded-lg cursor-pointer transition-colors text-sm font-medium text-destructive bg-white border border-transparent hover:border-border flex items-center gap-2"
+            >
+              <LogOut className="w-4 h-4" />
               Log Out
             </div>
           </div>
