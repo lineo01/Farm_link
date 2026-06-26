@@ -298,7 +298,7 @@ Features:
 
 ---
 
-## 🛒 Marketplace
+## 🛒 Easy product upload section
 
 <p align="center">
   <img src="https://github.com/user-attachments/assets/a5360b23-a3e1-4053-ad52-cc13ab5dbf17" width="46%" alt="Marketplace"/>
