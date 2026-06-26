@@ -358,8 +358,7 @@ Real-time monitoring of farm sensors including:
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/your-feature`<img width="655" height="649" alt="image (6)" src="https://github.com/user-attachments/assets/30160aa7-b17e-4b71-99b8-3054c08f3361" />
-
+2. Create a feature branh
 3. Commit your changes: `git commit -m 'Add some feature'`
 4. Push to the branch: `git push origin feature/your-feature`
 5. Open a Pull Request
