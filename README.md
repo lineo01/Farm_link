@@ -267,18 +267,92 @@ This project is optimized for deployment on **Replit**, but can be deployed on a
 
 ## 📱 Screenshots
 
-| Home Feed | Product Detail | Smart Assistant |
-|-----------|---------------|-----------------|
-|f Full product view with purchase flow | IoT sensor data + missions + rewards |
-<img width="923" height="649" alt="image" src="https://github.com/user-attachments/assets/8f472600-1de7-43b4-8d94-92268c902735" />
-<img width="583" height="649" alt="image (7)" src="https://github.com/user-attachments/assets/5dbacd59-6373-4585-8a9f-e61da6f0edf4" />
-<img width="655" height="649" alt="image (6)" src="https://github.com/user-attachments/assets/021cc3cd-d6a7-4a1c-a694-ccd5d9029cde" />
-<img width="695" height="649" alt="image (5)" src="https://github.com/user-attachments/assets/a5360b23-a3e1-4053-ad52-cc13ab5dbf17" />
-<img width="1540" height="649" alt="image (4)" src="https://github.com/user-attachments/assets/0d084748-99dd-48e1-8f85-b114f9ed8e17" />
-<img width="1114" height="649" alt="image (3)" src="https://github.com/user-attachments/assets/bdda3282-92f2-477c-b7cf-855c7837be21" />
-<img width="1561" height="649" alt="image (2)" src="https://github.com/user-attachments/assets/5c764c81-0dd5-4c51-83f2-e2aa3540af88" />
-<img width="1330" height="649" alt="image (1)" src="https://github.com/user-attachments/assets/142d6118-cbc7-42da-8b58-951190ed97cd" />
+# 📱 Application Preview
 
+Explore the core features of the application through the screenshots below.
+
+---
+
+## 🏠 Home Dashboard
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/021cc3cd-d6a7-4a1c-a694-ccd5d9029cde" width="85%" alt="Home Dashboard"/>
+</p>
+
+> The main application dashboard providing quick access to AI features, marketplace, analytics, and farming tools.
+
+---
+
+## 👨‍🌾 Farmer Dashboard
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/5dbacd59-6373-4585-8a9f-e61da6f0edf4" width="45%" alt="Farmer Dashboard"/>
+  <img src="https://github.com/user-attachments/assets/8f472600-1de7-43b4-8d94-92268c902735" width="45%" alt="Farmer Details"/>
+</p>
+
+Features:
+- 📊 Farm Analytics
+- 🌱 Crop Monitoring
+- 📈 Production Overview
+- 🤖 AI Insights
+
+---
+
+## 🛒 Marketplace
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/a5360b23-a3e1-4053-ad52-cc13ab5dbf17" width="46%" alt="Marketplace"/>
+</p>
+
+Sell agricultural products directly through the integrated marketplace.
+
+---
+
+## 👥 Community
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/0d084748-99dd-48e1-8f85-b114f9ed8e17" width="95%" alt="Community"/>
+</p>
+
+Community-driven knowledge sharing where farmers exchange tips, ask questions, and collaborate.
+
+---
+
+## 🎯 Missions
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/5c764c81-0dd5-4c51-83f2-e2aa3540af88" width="95%" alt="Missions"/>
+</p>
+
+Gamified daily and weekly farming missions to encourage engagement.
+
+---
+
+## 🏆 Rewards
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/bdda3282-92f2-477c-b7cf-855c7837be21" width="95%" alt="Rewards"/>
+</p>
+
+Earn points, badges, and rewards by completing missions and participating in the platform.
+
+---
+
+## 🌡️ IoT Monitoring
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/142d6118-cbc7-42da-8b58-951190ed97cd" width="95%" alt="IoT Dashboard"/>
+</p>
+
+Real-time monitoring of farm sensors including:
+
+- 🌡️ Temperature
+- 💧 Soil Moisture
+- 💦 Humidity
+- ☀️ Weather Data
+- 📊 Live Sensor Analytics
+
+---
 ---
 
 ## 🤝 Contributing
